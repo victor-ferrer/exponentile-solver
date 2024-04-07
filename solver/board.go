@@ -39,8 +39,10 @@ func NewBoard() Board {
 }
 
 func (b Board) Swap(t1, t2 Tile) {
-	aux := b.Get(t1.X, t1.Y)
-	b.set(t1.X, t1.Y, b.Get(t2.X, t2.Y))
+	aux, _ := b.Get(t1.X, t1.Y) // FIXME
+
+	val, _ := b.Get(t2.X, t2.Y)
+	b.set(t1.X, t1.Y, val)
 	b.set(t2.X, t2.Y, aux)
 
 }
@@ -63,8 +65,17 @@ func (b Board) Render() {
 	}
 }
 
-func (b Board) Get(x, y int) int {
-	return b[x][y]
+func (b Board) Get(x, y int) (int, error) {
+
+	if x >= width || x < 0 {
+		return 0, fmt.Errorf("getting tile value: invalid row: %d", x)
+	}
+
+	if y >= width || y < 0 {
+		return 0, fmt.Errorf("getting tile value: invalid column: %d", x)
+	}
+
+	return b[x][y], nil
 }
 
 func (b Board) set(x, y, value int) {

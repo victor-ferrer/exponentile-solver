@@ -15,11 +15,18 @@ func TestMain(m *testing.M) {
 func TestSwap(t *testing.T) {
 
 	b := getGameBoard()
-
 	b.Swap(CreateTile(3, 0), CreateTile(4, 0))
 
-	assert.Equal(t, 8, b.Get(3, 0))
-	assert.Equal(t, 2, b.Get(4, 0))
+	val, err := b.Get(3, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, 8, val)
+
+	val, err = b.Get(4, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, val)
+
+	_, err = b.Get(8, 0)
+	assert.Error(t, err)
 
 }
 
