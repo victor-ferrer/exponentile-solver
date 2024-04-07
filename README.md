@@ -9,6 +9,7 @@ The game is harder as time passes as more numbers are present in the board and i
 # Ideas
 
 ## Mimic the current game engine (ongoing):
+
 -  Board operations:
  - [ ] Swap tiles.
  - [ ] Drop tiles that match.
@@ -17,6 +18,7 @@ The game is harder as time passes as more numbers are present in the board and i
  - [ ] Add tests and some Github Actions executing them.
 -  A UI to play around: 
  -  The most basic form of UI to play the game: A CLI. Just for laughs.
+
 
 ## Implement some strategies that solve the game (future):
 - Top-bottom, bottom-top, random, etc.
@@ -30,16 +32,15 @@ The game is harder as time passes as more numbers are present in the board and i
 
 ![Current Board status](./docs/ui_board.PNG)
 
+As you can see there are some issues with the colouring, maybe I will have to use a black and white schema.
+
+# How to run it
+
 Run it with:
 - `go build`
 - Execute `solver`.
 - Once the board appears, hit enter and the you can select two tiles in order to swap them. 
 - That is for now.
-
-
-As you can see there are some issues with the colouring, maybe I will have to use a black and white schema.
-
-
 
 # Stack
 - Golang 1.22
