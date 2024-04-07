@@ -15,13 +15,13 @@ Golang engine that solves the game Exponentile: https://www.bellika.dk/exponenti
 - Have some Github action that postes the results of such benchmarks.
 
 # Current status
-- Basic Board model Poc implemented: Swap operation + test
-- Basic UI: Board layout + swap operation
-
+- Basic Board model Poc implemented: Swap operation + test.
+- Added basic CI that run the tests.
+- Basic UI: Board layout + swap operation:
 
 ![Current Board status](./docs/ui_board.PNG)
 
-
+As you can see there are some issues with the colouring, maybe I will have to use a black and white schema.
 
 
 
