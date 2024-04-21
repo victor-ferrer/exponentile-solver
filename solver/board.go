@@ -8,7 +8,7 @@ import (
 )
 
 type Board interface {
-	NewBoard() Board
+	// NewBoard() Board
 	Swap(t1, t2 Tile)
 	Get(x, y int) int
 	DropTile(t Tile, newValue int)
