@@ -2,82 +2,77 @@ package solver
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
+
+	"gonum.org/v1/gonum/mat"
 )
 
-type Board [][]int
-type Tile struct {
-	X, Y int
+type Board interface {
+	// NewBoard() Board
+	Swap(t1, t2 Tile)
+	Get(x, y int) int
+	DropTile(t Tile, newValue int)
+	Render()
+	FindGroup(x, y int) ([]Tile, error)
 }
 
-func GetSeqNumber(n int) int {
-	return int(math.Pow(2, float64(n)))
-}
-
-func CreateTile(row, col int) Tile {
-	return Tile{
-		X: row,
-		Y: col,
-	}
+type MatriXBoard struct {
+	m *mat.Dense
 }
 
 const width = 8
 
-func NewBoard() Board {
+func NewBoard() MatriXBoard {
 
-	b := make([][]int, width)
-
-	for rows := 0; rows < width; rows++ {
-		row := make([]int, width)
-		for cols := 0; cols < width; cols++ {
-			row[cols] = GetSeqNumber(rand.Intn(5) + 1)
-		}
-		b[rows] = row
+	data := make([]float64, width*width)
+	for i := range data {
+		data[i] = float64(GetSeqNumber(rand.Intn(5) + 1))
 	}
-	return b
-}
-
-func (b Board) Swap(t1, t2 Tile) {
-	aux, _ := b.Get(t1.X, t1.Y) // FIXME
-
-	val, _ := b.Get(t2.X, t2.Y)
-	b.set(t1.X, t1.Y, val)
-	b.set(t2.X, t2.Y, aux)
+	return MatriXBoard{
+		m: mat.NewDense(width, width, data),
+	}
 
 }
 
-func (b Board) DropTile(target Tile, newValue int) {
+func (b MatriXBoard) Swap(t1, t2 Tile) {
+	aux := b.m.At(t1.X, t1.Y)
+
+	b.m.Set(t1.X, t1.Y, b.m.At(t2.X, t2.Y))
+	b.m.Set(t2.X, t2.Y, aux)
+}
+
+func (b MatriXBoard) DropTile(target Tile, newValue int) {
 	col := target.Y
 	for row := target.X; row > 0; row-- {
 		b.Swap(CreateTile(row, col), CreateTile(row-1, col))
 	}
-	b[0][col] = newValue
+	b.m.Set(0, col, float64(newValue))
 
 }
 
-func (b Board) Render() {
+func (b MatriXBoard) Get(x, y int) int {
+	return int(b.m.At(x, y))
+}
+
+func (b MatriXBoard) Render() {
+
+	b.m.Trace()
 	for row := 0; row < width; row++ {
 		for column := 0; column < width; column++ {
-			fmt.Printf("%02d ", b[row][column])
+			fmt.Printf("%02f ", b.m.At(row, column))
 		}
 		fmt.Println()
 	}
 }
 
-func (b Board) Get(x, y int) (int, error) {
+// Find Group: Finds tiles with the same value in the same row
+func (b MatriXBoard) FindGroup(x, y int) ([]Tile, error) {
+	// targetVal := b.B.At(x, y)
 
-	if x >= width || x < 0 {
-		return 0, fmt.Errorf("getting tile value: invalid row: %d", x)
-	}
+	// leftTiles, err := b.getMatchingTilesToTheLeft(targetVal, x, y)
+	// rightTiles, err := b.getMatchingTilesToTheRight(targetVal, x, y)
 
-	if y >= width || y < 0 {
-		return 0, fmt.Errorf("getting tile value: invalid column: %d", x)
-	}
+	// return append(leftTiles, CreateTile(x, y), rightTiles), nil
+	return nil, nil
 
-	return b[x][y], nil
-}
-
-func (b Board) set(x, y, value int) {
-	b[x][y] = value
 }

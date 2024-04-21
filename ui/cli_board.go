@@ -21,13 +21,13 @@ func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
 	cols, rows := 8, 8
 	for r := 0; r < rows; r++ {
 		for c := 0; c < cols; c++ {
-			color := tcell.ColorBlack
-			value, _ := board.Get(r, c)
+			color := tcell.ColorWhite
+			value := board.Get(r, c)
 			table.SetCell(r, c,
 
 				tview.NewTableCell(fmt.Sprintf("%d", value)).
 					SetTextColor(color).
-					SetBackgroundColor(getTileColor(value)).
+					SetBackgroundColor(tcell.ColorBlack). //getTileColor(value)).
 					SetAlign(tview.AlignCenter))
 
 		}
@@ -50,8 +50,8 @@ func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
 
 			// TODO Validate is swap is legal (tiles must be contiguous)
 
-			// TODO Swap tiles in the model
-			//board.Swap(solver.CreateTile(firstSelected.))
+			// Swap tiles in the model
+			board.Swap(solver.CreateTile(firstSelectedX, firstSelectedY), solver.CreateTile(secondSelectX, secondSelectY))
 
 			// Swap tiles in the GUI
 			swapTiles(table, firstSelectedX, firstSelectedY, secondSelectX, secondSelectY)

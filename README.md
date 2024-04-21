@@ -32,7 +32,7 @@ The game is harder as time passes as more numbers are present in the board and i
 
 ![Current Board status](./docs/ui_board.PNG)
 
-As you can see there are some issues with the colouring, maybe I will have to use a black and white schema.
+Black and White colour schema for now.
 
 # How to run it
 
@@ -45,3 +45,4 @@ Run it with:
 # Stack
 - Golang 1.22
 - [TVIEW](https://github.com/rivo/tview) for rendering the CLI UI.
+- [GoNum](https://github.com/gonum/matrix) matrix package for Golang. 
