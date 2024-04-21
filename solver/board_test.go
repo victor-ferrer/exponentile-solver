@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gonum.org/v1/gonum/mat"
 )
 
 func TestMain(m *testing.M) {
@@ -17,28 +18,46 @@ func TestSwap(t *testing.T) {
 	b := getGameBoard()
 	b.Swap(CreateTile(3, 0), CreateTile(4, 0))
 
-	val, err := b.Get(3, 0)
-	assert.NoError(t, err)
+	val := b.Get(3, 0)
 	assert.Equal(t, 8, val)
 
-	val, err = b.Get(4, 0)
-	assert.NoError(t, err)
+	val = b.Get(4, 0)
 	assert.Equal(t, 2, val)
-
-	_, err = b.Get(8, 0)
-	assert.Error(t, err)
 
 }
 
-func getGameBoard() Board {
-	b := make([][]int, width)
-	b[0] = []int{2, 8, 2, 4, 4, 2, 8, 16}
-	b[1] = []int{4, 16, 4, 16, 16, 8, 16, 8}
-	b[2] = []int{4, 8, 2, 8, 4, 16, 8, 16}
-	b[3] = []int{2, 16, 4, 8, 2, 16, 8, 4}
-	b[4] = []int{8, 16, 2, 2, 16, 4, 16, 8}
-	b[5] = []int{4, 2, 8, 8, 2, 8, 4, 8}
-	b[6] = []int{8, 2, 8, 2, 4, 2, 16, 4}
-	b[7] = []int{16, 16, 2, 16, 8, 2, 4, 2}
-	return b
+func TestDrop(t *testing.T) {
+	// TODO this could be a table test
+	b := getGameBoard()
+
+	b.DropTile(CreateTile(7, 0), 32)
+	val := b.Get(7, 0)
+	assert.Equal(t, 8, val)
+
+	val = b.Get(6, 0)
+	assert.Equal(t, 4, val)
+
+	val = b.Get(5, 0)
+	assert.Equal(t, 8, val)
+
+	val = b.Get(0, 0)
+	assert.Equal(t, 32, val)
+}
+
+func getGameBoard() MatriXBoard {
+
+	data := make([]float64, 0)
+	data = append(data, []float64{2, 8, 2, 4, 4, 2, 8, 16}...)
+	data = append(data, []float64{4, 16, 4, 16, 16, 8, 16, 8}...)
+	data = append(data, []float64{4, 8, 2, 8, 4, 16, 8, 16}...)
+	data = append(data, []float64{2, 16, 4, 8, 2, 16, 8, 4}...)
+	data = append(data, []float64{8, 16, 2, 2, 16, 4, 16, 8}...)
+	data = append(data, []float64{4, 2, 8, 8, 2, 8, 4, 8}...)
+	data = append(data, []float64{8, 2, 8, 2, 4, 2, 16, 4}...)
+	data = append(data, []float64{16, 16, 2, 16, 8, 2, 4, 2}...)
+
+	return MatriXBoard{
+		m: mat.NewDense(width, width, data),
+	}
+
 }
