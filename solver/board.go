@@ -8,12 +8,12 @@ import (
 )
 
 type Board interface {
-	// NewBoard() Board
 	Swap(t1, t2 Tile)
 	Get(x, y int) int
 	DropTile(t Tile, newValue int)
 	Render()
 	FindGroup(x, y int) ([]Tile, error)
+	MakeMove(t1, t2 Tile) ([]Tile, int, error)
 }
 
 type MatriXBoard struct {
@@ -56,23 +56,55 @@ func (b MatriXBoard) Get(x, y int) int {
 
 func (b MatriXBoard) Render() {
 
-	b.m.Trace()
 	for row := 0; row < width; row++ {
 		for column := 0; column < width; column++ {
-			fmt.Printf("%02f ", b.m.At(row, column))
+			fmt.Printf("%02d ", int(b.m.At(row, column)))
 		}
 		fmt.Println()
 	}
 }
 
 // Find Group: Finds tiles with the same value in the same row
+// TODO: Groups of three in the same row only
 func (b MatriXBoard) FindGroup(x, y int) ([]Tile, error) {
-	// targetVal := b.B.At(x, y)
 
-	// leftTiles, err := b.getMatchingTilesToTheLeft(targetVal, x, y)
-	// rightTiles, err := b.getMatchingTilesToTheRight(targetVal, x, y)
+	row := b.m.RowView(x)
+	val := b.m.At(x, y)
 
-	// return append(leftTiles, CreateTile(x, y), rightTiles), nil
-	return nil, nil
+	result := []Tile{}
+
+	if y == width-1 {
+		// Look for tiles to the left
+		if row.AtVec(y-1) == val && row.AtVec(y-2) == val {
+			result = append(result, CreateTile(x, y), CreateTile(x, y-1), CreateTile(x, y-2))
+		}
+
+	}
+	if y < width-1 && y > 0 {
+		// Look on both sides
+		if row.AtVec(y-1) == val && row.AtVec(y+1) == val {
+			result = append(result, CreateTile(x, y), CreateTile(x, y-1), CreateTile(x, y+1))
+		}
+	}
+	if y == 0 {
+		// Look for tiles to the right
+		if row.AtVec(y+1) == val && row.AtVec(y+2) == val {
+			result = append(result, CreateTile(x, y), CreateTile(x, y+1), CreateTile(x, y+2))
+
+		}
+	}
+
+	return result, nil
+
+}
+
+func (b MatriXBoard) MakeMove(t1, t2 Tile) ([]Tile, int, error) {
+	// TODO
+	// If the swap is valid (contiguos tiles)
+	//    - Find if there is a group for the tile moved first
+	//    - If there is a group:
+	//         - Calculate the replacement Tile (next power of 2)
+	//         - Drop the rest two tiles and replace them with random tiles
+	//         - Return the score increase
 
 }
