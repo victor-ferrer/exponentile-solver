@@ -106,5 +106,6 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) ([]Tile, int, error) {
 	//         - Calculate the replacement Tile (next power of 2)
 	//         - Drop the rest two tiles and replace them with random tiles
 	//         - Return the score increase
+	return []Tile{}, 0, nil
 
 }
