@@ -8,7 +8,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
+func NewUIBoard(board solver.Board, app *tview.Application, debug *tview.TextView) *tview.Table {
 
 	table := tview.NewTable().SetBorders(true)
 
@@ -50,6 +50,10 @@ func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
 
 			// TODO
 			groups, _ := board.MakeMove(solver.CreateTile(firstSelectedX, firstSelectedY), solver.CreateTile(secondSelectX, secondSelectY))
+
+			debug.Clear()
+			fmt.Fprintf(debug, "%d Groups found swapping (%d,%d) by (%d,%d) \n", len(groups), firstSelectedX, firstSelectedY, secondSelectX, secondSelectY)
+			fmt.Fprintf(debug, "Contiguous tiles? %t", solver.AreTilesContiguous(solver.CreateTile(firstSelectedX, firstSelectedY), solver.CreateTile(secondSelectX, secondSelectY)))
 
 			if len(groups) > 0 {
 				// Swap tiles in the GUI
