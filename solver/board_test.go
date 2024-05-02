@@ -47,28 +47,22 @@ func TestDrop(t *testing.T) {
 func TestGetGroups(t *testing.T) {
 	b := getGameBoard()
 
-	result, err := b.FindGroup(7, 0)
-	assert.NoError(t, err)
+	result := b.FindGroup(7, 0)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2)})
 
-	result, err = b.FindGroup(7, 7)
-	assert.NoError(t, err)
+	result = b.FindGroup(7, 7)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
-	result, err = b.FindGroup(7, 6)
-	assert.NoError(t, err)
+	result = b.FindGroup(7, 6)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
-	result, err = b.FindGroup(0, 0)
-	assert.NoError(t, err)
+	result = b.FindGroup(0, 0)
 	assert.Empty(t, result)
 
-	result, err = b.FindGroup(0, 1)
-	assert.NoError(t, err)
+	result = b.FindGroup(0, 1)
 	assert.Empty(t, result)
 
-	result, err = b.FindGroup(0, 2)
-	assert.NoError(t, err)
+	result = b.FindGroup(0, 2)
 	assert.Empty(t, result)
 
 }

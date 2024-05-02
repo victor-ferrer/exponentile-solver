@@ -12,8 +12,8 @@ type Board interface {
 	Get(x, y int) int
 	DropTile(t Tile, newValue int)
 	Render()
-	FindGroup(x, y int) ([]Tile, error)
-	MakeMove(t1, t2 Tile) ([]Tile, int, error)
+	FindGroup(x, y int) []Tile
+	MakeMove(t1, t2 Tile) ([]Tile, int)
 }
 
 type MatriXBoard struct {
@@ -66,7 +66,7 @@ func (b MatriXBoard) Render() {
 
 // Find Group: Finds tiles with the same value in the same row
 // TODO: Groups of three in the same row only
-func (b MatriXBoard) FindGroup(x, y int) ([]Tile, error) {
+func (b MatriXBoard) FindGroup(x, y int) []Tile {
 
 	row := b.m.RowView(x)
 	val := b.m.At(x, y)
@@ -94,18 +94,39 @@ func (b MatriXBoard) FindGroup(x, y int) ([]Tile, error) {
 		}
 	}
 
-	return result, nil
+	return result
 
 }
 
-func (b MatriXBoard) MakeMove(t1, t2 Tile) ([]Tile, int, error) {
+func (b MatriXBoard) MakeMove(t1, t2 Tile) ([]Tile, int) {
 	// TODO
 	// If the swap is valid (contiguos tiles)
-	//    - Find if there is a group for the tile moved first
-	//    - If there is a group:
-	//         - Calculate the replacement Tile (next power of 2)
-	//         - Drop the rest two tiles and replace them with random tiles
-	//         - Return the score increase
-	return []Tile{}, 0, nil
+	if !AreTilesContiguous(t1, t2) {
+		return []Tile{}, 0
+	}
+
+	b.Swap(t1, t2)
+
+	// Find if there is a group for the tile moved first
+	groups := b.FindGroup(t1.X, t1.Y)
+
+	if len(groups) > 0 {
+		return []Tile{}, 0
+	}
+
+	// If there is a group:
+	//  - Calculate the replacement Tile (next power of 2)
+	next := GetNextPowerOf2(b.Get(t1.X, t1.Y))
+	b.m.Set(t1.X, t1.Y, float64(next))
+
+	//  Drop the rest two tiles and replace them with random tiles
+	for _, tileToDrop := range groups {
+		if tileToDrop != t1 {
+			b.DropTile(tileToDrop, GetSeqNumber(rand.Intn(5)+1))
+		}
+	}
+
+	//  Return the score increase
+	return groups, next
 
 }

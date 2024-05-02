@@ -48,13 +48,13 @@ func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
 			secondSelectX = row
 			secondSelectY = column
 
-			// TODO Validate is swap is legal (tiles must be contiguous)
+			// TODO
+			groups, _ := board.MakeMove(solver.CreateTile(firstSelectedX, firstSelectedY), solver.CreateTile(secondSelectX, secondSelectY))
 
-			// Swap tiles in the model
-			board.Swap(solver.CreateTile(firstSelectedX, firstSelectedY), solver.CreateTile(secondSelectX, secondSelectY))
-
-			// Swap tiles in the GUI
-			swapTiles(table, firstSelectedX, firstSelectedY, secondSelectX, secondSelectY)
+			if len(groups) > 0 {
+				// Swap tiles in the GUI
+				refreshTiles(table, board)
+			}
 
 			// Clear selection
 			firstSelectedX = -1
@@ -62,8 +62,6 @@ func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
 
 			secondSelectX = -1
 			secondSelectY = -1
-
-			// TODO To swap will have to be reverted if invalid
 
 		}
 
@@ -87,6 +85,15 @@ func swapTiles(table *tview.Table, firstSelectedX, firstSelectedY, secondSelectX
 	tgt.SetText(auxValue)
 	tgt.SetBackgroundColor(auxColor)
 
+}
+
+func refreshTiles(table *tview.Table, b solver.Board) {
+	for r := 0; r < 8; r++ {
+		for c := 0; c < 8; c++ {
+			cell := table.GetCell(r, c)
+			cell.SetText(fmt.Sprintf("%d", b.Get(r, c)))
+		}
+	}
 }
 
 func getTileColor(value int) tcell.Color {
