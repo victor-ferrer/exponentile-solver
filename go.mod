@@ -3,7 +3,7 @@ module victor-ferrer/solver
 go 1.22
 
 require (
-	github.com/gdamore/tcell/v2 v2.7.1
+	github.com/gdamore/tcell/v2 v2.7.4
 	github.com/stretchr/testify v1.9.0
 )
 
