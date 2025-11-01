@@ -125,13 +125,15 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) (GameEvent, error) {
 
 	// If no group was found, swap back and return no changes
 	if len(group) == 0 {
-		b.swap(t1, t2)
+		b.swap(t2, t1)
 		return GameEvent{
 			Board: b,
 			Type:  EVENT_TYPE_NO_CHANGES,
 			Score: b.score,
 		}, nil
 	}
+
+	// TODO: Different groups means differen tiles to be removed and different score
 
 	// Calculate the replacement value (next power of 2)
 	currentValue := b.Get(group[0].X, group[0].Y)
@@ -146,12 +148,12 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) (GameEvent, error) {
 	b.dropTile(group[2], GetSeqNumber(rand.Intn(5)+1))
 
 	// Calculate score increase
-	score := currentValue * 3
+	b.score = b.score + currentValue*3
 
 	return GameEvent{
 		Board: b,
 		Type:  EVENT_TYPE_GAME_UPDATED,
-		Score: score,
+		Score: b.score,
 	}, nil
 }
 

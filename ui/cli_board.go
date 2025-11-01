@@ -50,7 +50,7 @@ func NewUIBoard(board domain.Board, app *tview.Application, text *tview.TextView
 
 			evt, _ := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
 
-			text.SetText(fmt.Sprintf("Debug: Event type is %s", evt.Type))
+			text.SetText(fmt.Sprintf("Debug: Event type is %s, score=%d", evt.Type, evt.Score))
 
 			if evt.Type == domain.EVENT_TYPE_GAME_UPDATED {
 

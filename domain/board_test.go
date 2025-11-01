@@ -3,6 +3,7 @@ package domain
 import (
 	"os"
 	"testing"
+	"victor-ferrer/solver/domain"
 
 	"github.com/stretchr/testify/assert"
 	"gonum.org/v1/gonum/mat"
@@ -69,9 +70,8 @@ func TestGetGroups(t *testing.T) {
 func TestMakeMove_InvalidSwap(t *testing.T) {
 	b := getGameBoard()
 
-	_, err := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
-	assert.Error(t, err)
-	assert.Equal(t, "tiles are not contiguous", err.Error())
+	evt, _ := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
+	assert.Equal(t, domain.EVENT_TYPE_NO_CHANGES, evt.Type)
 }
 
 func TestMakeMove_NoGroupFormed(t *testing.T) {
@@ -95,7 +95,7 @@ func TestMakeMove_GroupFormed(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, evt.Type)
 	assert.Equal(t, 16*3, evt.Score)
-	
+
 	middleTileValue := b.Get(7, 1)
 	assert.Equal(t, 32, middleTileValue)
 }
