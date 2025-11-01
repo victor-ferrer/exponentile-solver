@@ -1,7 +1,7 @@
 package main
 
 import (
-	"victor-ferrer/solver/solver"
+	"victor-ferrer/solver/domain"
 	"victor-ferrer/solver/ui"
 
 	"github.com/rivo/tview"
@@ -10,7 +10,7 @@ import (
 func main() {
 
 	// Model
-	board := solver.NewBoard()
+	board := domain.NewBoard()
 
 	app := tview.NewApplication()
 

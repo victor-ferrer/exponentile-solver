@@ -2,13 +2,13 @@ package ui
 
 import (
 	"fmt"
-	"victor-ferrer/solver/solver"
+	"victor-ferrer/solver/domain"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
+func NewUIBoard(board domain.Board, app *tview.Application) *tview.Table {
 
 	table := tview.NewTable().SetBorders(true)
 
@@ -51,7 +51,7 @@ func NewUIBoard(board solver.Board, app *tview.Application) *tview.Table {
 			// TODO Validate is swap is legal (tiles must be contiguous)
 
 			// Swap tiles in the model
-			board.Swap(solver.CreateTile(firstSelectedX, firstSelectedY), solver.CreateTile(secondSelectX, secondSelectY))
+			board.Swap(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
 
 			// Swap tiles in the GUI
 			swapTiles(table, firstSelectedX, firstSelectedY, secondSelectX, secondSelectY)
