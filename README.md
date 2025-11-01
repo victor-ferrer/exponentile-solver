@@ -37,8 +37,7 @@ Black and White colour schema for now.
 # How to run it
 
 Run it with:
-- `go build`
-- Execute `solver`.
+- `go run main.go`
 - Once the board appears, hit enter and the you can select two tiles in order to swap them. 
 - That is for now.
 

@@ -1,4 +1,4 @@
-package solver
+package domain
 
 type Tile struct {
 	X, Y int

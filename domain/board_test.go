@@ -1,4 +1,4 @@
-package solver
+package domain
 
 import (
 	"os"
