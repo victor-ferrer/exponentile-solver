@@ -9,14 +9,13 @@ import (
 )
 
 func TestMain(m *testing.M) {
-
 	os.Exit(m.Run())
 }
 
 func TestSwap(t *testing.T) {
 
 	b := getGameBoard()
-	b.Swap(CreateTile(3, 0), CreateTile(4, 0))
+	b.swap(CreateTile(3, 0), CreateTile(4, 0))
 
 	val := b.Get(3, 0)
 	assert.Equal(t, 8, val)
@@ -30,7 +29,7 @@ func TestDrop(t *testing.T) {
 	// TODO this could be a table test
 	b := getGameBoard()
 
-	b.DropTile(CreateTile(7, 0), 32)
+	b.dropTile(CreateTile(7, 0), 32)
 	val := b.Get(7, 0)
 	assert.Equal(t, 8, val)
 
@@ -47,30 +46,74 @@ func TestDrop(t *testing.T) {
 func TestGetGroups(t *testing.T) {
 	b := getGameBoard()
 
-	result, err := b.FindGroup(7, 0)
-	assert.NoError(t, err)
+	result := b.findGroup(7, 0)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2)})
 
-	result, err = b.FindGroup(7, 7)
-	assert.NoError(t, err)
+	result = b.findGroup(7, 7)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
-	result, err = b.FindGroup(7, 6)
-	assert.NoError(t, err)
+	result = b.findGroup(7, 6)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
-	result, err = b.FindGroup(0, 0)
-	assert.NoError(t, err)
+	result = b.findGroup(0, 0)
 	assert.Empty(t, result)
 
-	result, err = b.FindGroup(0, 1)
-	assert.NoError(t, err)
+	result = b.findGroup(0, 1)
 	assert.Empty(t, result)
 
-	result, err = b.FindGroup(0, 2)
-	assert.NoError(t, err)
+	result = b.findGroup(0, 2)
 	assert.Empty(t, result)
 
+}
+
+func TestMakeMove_InvalidSwap(t *testing.T) {
+	b := getGameBoard()
+
+	_, err := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
+	assert.Error(t, err)
+	assert.Equal(t, "tiles are not contiguous", err.Error())
+}
+
+func TestMakeMove_NoGroupFormed(t *testing.T) {
+	b := getGameBoard()
+
+	evt, err := b.MakeMove(CreateTile(0, 0), CreateTile(0, 1))
+	assert.NoError(t, err)
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
+	assert.Equal(t, 0, evt.Score)
+	assert.Equal(t, 2, b.Get(0, 0))
+	assert.Equal(t, 8, b.Get(0, 1))
+}
+
+func TestMakeMove_GroupFormed(t *testing.T) {
+	b := getGameBoard()
+
+	initialValue := b.Get(7, 2)
+	assert.Equal(t, 16, initialValue)
+
+	evt, err := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
+	assert.NoError(t, err)
+	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, evt.Type)
+	assert.Equal(t, 16*3, evt.Score)
+	
+	middleTileValue := b.Get(7, 1)
+	assert.Equal(t, 32, middleTileValue)
+}
+
+func TestMakeMove_VerticalSwap(t *testing.T) {
+	b := getGameBoard()
+
+	evt, err := b.MakeMove(CreateTile(0, 0), CreateTile(1, 0))
+	assert.NoError(t, err)
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
+}
+
+func TestMakeMove_HorizontalSwap(t *testing.T) {
+	b := getGameBoard()
+
+	evt, err := b.MakeMove(CreateTile(7, 5), CreateTile(7, 6))
+	assert.NoError(t, err)
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
 }
 
 func getGameBoard() MatriXBoard {

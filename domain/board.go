@@ -1,23 +1,31 @@
 package domain
 
 import (
-	"fmt"
 	"math/rand"
 
 	"gonum.org/v1/gonum/mat"
 )
 
+const (
+	EVENT_TYPE_GAME_OVER    = "GAME_OVER"
+	EVENT_TYPE_GAME_UPDATED = "GAME_UPDATED"
+	EVENT_TYPE_NO_CHANGES   = "NO_CHANGES"
+)
+
+type GameEvent struct {
+	Type  string
+	Board Board
+	Score int
+}
+
 type Board interface {
-	Swap(t1, t2 Tile)
 	Get(x, y int) int
-	DropTile(t Tile, newValue int)
-	Render()
-	FindGroup(x, y int) ([]Tile, error)
-	MakeMove(t1, t2 Tile) ([]Tile, int, error)
+	MakeMove(t1, t2 Tile) (GameEvent, error)
 }
 
 type MatriXBoard struct {
-	m *mat.Dense
+	m     *mat.Dense
+	score int
 }
 
 const width = 8
@@ -34,17 +42,23 @@ func NewBoard() MatriXBoard {
 
 }
 
-func (b MatriXBoard) Swap(t1, t2 Tile) {
+func (b MatriXBoard) swap(t1, t2 Tile) GameEvent {
 	aux := b.m.At(t1.X, t1.Y)
 
 	b.m.Set(t1.X, t1.Y, b.m.At(t2.X, t2.Y))
 	b.m.Set(t2.X, t2.Y, aux)
+
+	return GameEvent{
+		Type:  EVENT_TYPE_GAME_UPDATED,
+		Board: b,
+		Score: b.score,
+	}
 }
 
-func (b MatriXBoard) DropTile(target Tile, newValue int) {
+func (b MatriXBoard) dropTile(target Tile, newValue int) {
 	col := target.Y
 	for row := target.X; row > 0; row-- {
-		b.Swap(CreateTile(row, col), CreateTile(row-1, col))
+		b.swap(CreateTile(row, col), CreateTile(row-1, col))
 	}
 	b.m.Set(0, col, float64(newValue))
 
@@ -54,19 +68,9 @@ func (b MatriXBoard) Get(x, y int) int {
 	return int(b.m.At(x, y))
 }
 
-func (b MatriXBoard) Render() {
-
-	for row := 0; row < width; row++ {
-		for column := 0; column < width; column++ {
-			fmt.Printf("%02d ", int(b.m.At(row, column)))
-		}
-		fmt.Println()
-	}
-}
-
 // Find Group: Finds tiles with the same value in the same row
 // TODO: Groups of three in the same row only
-func (b MatriXBoard) FindGroup(x, y int) ([]Tile, error) {
+func (b MatriXBoard) findGroup(x, y int) []Tile {
 
 	row := b.m.RowView(x)
 	val := b.m.At(x, y)
@@ -94,18 +98,71 @@ func (b MatriXBoard) FindGroup(x, y int) ([]Tile, error) {
 		}
 	}
 
-	return result, nil
+	return result
 
 }
 
-func (b MatriXBoard) MakeMove(t1, t2 Tile) ([]Tile, int, error) {
-	// TODO
-	// If the swap is valid (contiguos tiles)
-	//    - Find if there is a group for the tile moved first
-	//    - If there is a group:
-	//         - Calculate the replacement Tile (next power of 2)
-	//         - Drop the rest two tiles and replace them with random tiles
-	//         - Return the score increase
-	return []Tile{}, 0, nil
+func (b MatriXBoard) MakeMove(t1, t2 Tile) (GameEvent, error) {
+	// Check if the swap is valid (contiguous tiles)
+	if !areContiguous(t1, t2) {
+		return GameEvent{
+			Board: b,
+			Type:  EVENT_TYPE_NO_CHANGES,
+			Score: b.score,
+		}, nil
+	}
 
+	// Swap the tiles
+	b.swap(t1, t2)
+
+	// Find if there is a group for the tile moved first (now at t2 position)
+	group := b.findGroup(t2.X, t2.Y)
+
+	// If there is no group, check the other tile
+	if len(group) == 0 {
+		group = b.findGroup(t1.X, t1.Y)
+	}
+
+	// If no group was found, swap back and return no changes
+	if len(group) == 0 {
+		b.swap(t1, t2)
+		return GameEvent{
+			Board: b,
+			Type:  EVENT_TYPE_NO_CHANGES,
+			Score: b.score,
+		}, nil
+	}
+
+	// Calculate the replacement value (next power of 2)
+	currentValue := b.Get(group[0].X, group[0].Y)
+	nextValue := currentValue * 2
+
+	// Keep the middle tile and drop the other two with random tiles
+	middleTile := group[1]
+	b.m.Set(middleTile.X, middleTile.Y, float64(nextValue))
+
+	// Drop the first and last tiles and replace with random tiles
+	b.dropTile(group[0], GetSeqNumber(rand.Intn(5)+1))
+	b.dropTile(group[2], GetSeqNumber(rand.Intn(5)+1))
+
+	// Calculate score increase
+	score := currentValue * 3
+
+	return GameEvent{
+		Board: b,
+		Type:  EVENT_TYPE_GAME_UPDATED,
+		Score: score,
+	}, nil
+}
+
+func areContiguous(t1, t2 Tile) bool {
+	// Check if tiles are adjacent horizontally
+	if t1.X == t2.X && (t1.Y == t2.Y+1 || t1.Y == t2.Y-1) {
+		return true
+	}
+	// Check if tiles are adjacent vertically
+	if t1.Y == t2.Y && (t1.X == t2.X+1 || t1.X == t2.X-1) {
+		return true
+	}
+	return false
 }

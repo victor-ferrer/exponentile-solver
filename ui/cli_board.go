@@ -8,7 +8,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func NewUIBoard(board domain.Board, app *tview.Application) *tview.Table {
+func NewUIBoard(board domain.Board, app *tview.Application, text *tview.TextView) *tview.Table {
 
 	table := tview.NewTable().SetBorders(true)
 
@@ -19,8 +19,8 @@ func NewUIBoard(board domain.Board, app *tview.Application) *tview.Table {
 	secondSelectY := -1
 
 	cols, rows := 8, 8
-	for r := 0; r < rows; r++ {
-		for c := 0; c < cols; c++ {
+	for r := range rows {
+		for c := range cols {
 			color := tcell.ColorWhite
 			value := board.Get(r, c)
 			table.SetCell(r, c,
@@ -48,10 +48,13 @@ func NewUIBoard(board domain.Board, app *tview.Application) *tview.Table {
 			secondSelectX = row
 			secondSelectY = column
 
-			// TODO Validate is swap is legal (tiles must be contiguous)
+			evt, _ := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
 
-			// Swap tiles in the model
-			board.Swap(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
+			text.SetText(fmt.Sprintf("Debug: Event type is %s", evt.Type))
+
+			if evt.Type == domain.EVENT_TYPE_GAME_UPDATED {
+
+			}
 
 			// Swap tiles in the GUI
 			swapTiles(table, firstSelectedX, firstSelectedY, secondSelectX, secondSelectY)
@@ -62,9 +65,6 @@ func NewUIBoard(board domain.Board, app *tview.Application) *tview.Table {
 
 			secondSelectX = -1
 			secondSelectY = -1
-
-			// TODO To swap will have to be reverted if invalid
-
 		}
 
 	})
