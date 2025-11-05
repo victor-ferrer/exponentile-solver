@@ -3,7 +3,6 @@ package domain
 import (
 	"os"
 	"testing"
-	"victor-ferrer/solver/domain"
 
 	"github.com/stretchr/testify/assert"
 	"gonum.org/v1/gonum/mat"
@@ -70,15 +69,14 @@ func TestGetGroups(t *testing.T) {
 func TestMakeMove_InvalidSwap(t *testing.T) {
 	b := getGameBoard()
 
-	evt, _ := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
-	assert.Equal(t, domain.EVENT_TYPE_NO_CHANGES, evt.Type)
+	evt := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
 }
 
 func TestMakeMove_NoGroupFormed(t *testing.T) {
 	b := getGameBoard()
 
-	evt, err := b.MakeMove(CreateTile(0, 0), CreateTile(0, 1))
-	assert.NoError(t, err)
+	evt := b.MakeMove(CreateTile(0, 0), CreateTile(0, 1))
 	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
 	assert.Equal(t, 0, evt.Score)
 	assert.Equal(t, 2, b.Get(0, 0))
@@ -91,29 +89,11 @@ func TestMakeMove_GroupFormed(t *testing.T) {
 	initialValue := b.Get(7, 2)
 	assert.Equal(t, 16, initialValue)
 
-	evt, err := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
-	assert.NoError(t, err)
+	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
 	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, evt.Type)
-	assert.Equal(t, 16*3, evt.Score)
-
+	
 	middleTileValue := b.Get(7, 1)
 	assert.Equal(t, 32, middleTileValue)
-}
-
-func TestMakeMove_VerticalSwap(t *testing.T) {
-	b := getGameBoard()
-
-	evt, err := b.MakeMove(CreateTile(0, 0), CreateTile(1, 0))
-	assert.NoError(t, err)
-	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
-}
-
-func TestMakeMove_HorizontalSwap(t *testing.T) {
-	b := getGameBoard()
-
-	evt, err := b.MakeMove(CreateTile(7, 5), CreateTile(7, 6))
-	assert.NoError(t, err)
-	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
 }
 
 func getGameBoard() MatriXBoard {

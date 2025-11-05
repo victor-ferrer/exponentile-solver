@@ -48,7 +48,7 @@ func NewUIBoard(board domain.Board, app *tview.Application, text *tview.TextView
 			secondSelectX = row
 			secondSelectY = column
 
-			evt, _ := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
+			evt := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
 
 			text.SetText(fmt.Sprintf("Debug: Event type is %s, score=%d", evt.Type, evt.Score))
 
