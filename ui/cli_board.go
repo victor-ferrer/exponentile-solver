@@ -13,7 +13,7 @@ const (
 	ROWS = 8
 )
 
-func NewUIBoard(board domain.Board, app *tview.Application, text *tview.TextView) *tview.Table {
+func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.TextView) *tview.Table {
 
 	table := tview.NewTable().SetBorders(true)
 
@@ -54,9 +54,18 @@ func NewUIBoard(board domain.Board, app *tview.Application, text *tview.TextView
 
 			evt := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
 
-			text.SetText(fmt.Sprintf("Debug: Event type is %s, score=%d", evt.Type, evt.Score))
+			debugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", evt.Type, evt.Score))
 
 			if evt.Type == domain.EVENT_TYPE_GAME_UPDATED {
+
+				if len(evt.GroupedTiles) > 0 {
+					groupedTilesTxt := ""
+					for _, tile := range evt.GroupedTiles {
+						groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, board.Get(tile.X, tile.Y))
+					}
+					debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
+				}
+
 				renderBoard(evt.Board, table)
 			}
 

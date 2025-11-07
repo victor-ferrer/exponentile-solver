@@ -12,17 +12,6 @@ const (
 	EVENT_TYPE_NO_CHANGES   = "NO_CHANGES"
 )
 
-type GameEvent struct {
-	Type  string
-	Board Board
-	Score int
-}
-
-type Board interface {
-	Get(x, y int) int
-	MakeMove(t1, t2 Tile) GameEvent
-}
-
 type MatriXBoard struct {
 	m     *mat.Dense
 	score int
@@ -197,9 +186,10 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	}
 
 	return GameEvent{
-		Board: b,
-		Type:  EVENT_TYPE_GAME_UPDATED,
-		Score: b.score,
+		Board:        b,
+		Type:         EVENT_TYPE_GAME_UPDATED,
+		Score:        b.score,
+		GroupedTiles: group,
 	}
 }
 

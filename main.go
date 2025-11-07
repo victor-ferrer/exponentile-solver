@@ -15,15 +15,14 @@ func main() {
 	app := tview.NewApplication()
 
 	flex := tview.NewFlex()
-	flex.SetDirection(tview.FlexRow)
+	flex.SetDirection(tview.FlexColumn)
 
-	text := tview.NewTextView()
+	debugTxt := tview.NewTextView()
+	debugTxt.SetText("Debug:")
 
-	text.SetText("Debug:")
-	flex.AddItem(text, 0, 1, false)
-
-	table := ui.NewUIBoard(board, app, text)
-	flex.AddItem(table, 0, 8, false)
+	table := ui.NewUIBoard(board, app, debugTxt)
+	flex.AddItem(table, 57, 4, false)
+	flex.AddItem(debugTxt, 0, 1, false)
 
 	if err := app.SetRoot(flex, true).SetFocus(table).Run(); err != nil {
 		panic(err)
