@@ -6,7 +6,7 @@ The game is played on an 8x8 board by swapping contiguous tiles. When three or m
 
 The game becomes harder as more numbers appear on the board, making it increasingly difficult to line up 3 or more tiles with the same value.
 
-See the detailed rules in the Game Mechanics wiki page.
+See the detailed rules in the [Game Mechanics wiki page](https://github.com/victor-ferrer/exponentile-solver/wiki/Game-Mechanics).
 
 ## Project Status
 
