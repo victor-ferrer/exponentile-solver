@@ -15,7 +15,7 @@ const (
 
 func NewUIBoard(board domain.Board, app *tview.Application, text *tview.TextView) *tview.Table {
 
-	table := tview.NewTable().SetBorders(true)
+	table := tview.NewTable().SetBorders(false).SetSeparator('│')
 
 	firstSelectedX := -1
 	firstSelectedY := -1
@@ -29,9 +29,9 @@ func NewUIBoard(board domain.Board, app *tview.Application, text *tview.TextView
 			value := board.Get(r, c)
 			table.SetCell(r, c,
 
-				tview.NewTableCell(fmt.Sprintf("%d", value)).
+				tview.NewTableCell(fmt.Sprintf(" \n %d \n ", value)).
 					SetTextColor(color).
-					SetBackgroundColor(tcell.ColorBlack). //getTileColor(value)).
+					SetBackgroundColor(getTileColor(value)).
 					SetAlign(tview.AlignCenter))
 
 		}
@@ -78,7 +78,9 @@ func renderBoard(board domain.Board, table *tview.Table) {
 	for r := range ROWS {
 		for c := range COLS {
 			value := board.Get(r, c)
-			table.SetCell(r, c, tview.NewTableCell(fmt.Sprintf("%d", value)))
+			cell := tview.NewTableCell(fmt.Sprintf(" \n %d \n ", value))
+			cell.SetBackgroundColor(getTileColor(value))
+			table.SetCell(r, c, cell)
 		}
 	}
 }
