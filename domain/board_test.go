@@ -92,13 +92,56 @@ func TestMakeMove_GroupFormed(t *testing.T) {
 	initialValue := b.Get(7, 2)
 	assert.Equal(t, 16, initialValue)
 
+	// Moving tile from (7,3) to (7,2)
 	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
 	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, evt.Type)
 
-	// Row 7 has 4 contiguous 16s, so middle index is 2 (positions 0-3, middle at index 2)
-	// After merge, position (7,2) should have the upgraded value
-	middleTileValue := b.Get(7, 2)
-	assert.Equal(t, 32, middleTileValue)
+	// Row 7 has 4 contiguous 16s
+	// The moved tile at (7,2) should be kept and upgraded
+	movedTileValue := b.Get(7, 2)
+	assert.Equal(t, 32, movedTileValue)
+
+	// Score should be the sum of the 4 tiles (16+16+16+16 = 64)
+	assert.Equal(t, 64, evt.Score)
+}
+
+func TestCalculateGroupScore(t *testing.T) {
+	b := getGameBoard()
+
+	// Test with 4 tiles of value 16
+	group := []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2), CreateTile(7, 3)}
+	score := b.calculateGroupScore(group)
+	assert.Equal(t, 64, score)
+
+	// Test with 3 tiles of value 2
+	group = []Tile{CreateTile(7, 5), CreateTile(7, 6), CreateTile(7, 7)}
+	score = b.calculateGroupScore(group)
+	assert.Equal(t, 6, score)
+
+	// Test with empty group
+	group = []Tile{}
+	score = b.calculateGroupScore(group)
+	assert.Equal(t, 0, score)
+}
+
+func TestMakeMove_ScoreIncrement(t *testing.T) {
+	b := getGameBoard()
+
+	// First move: Row 7, 4 tiles of value 16 (score = 64)
+	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
+	assert.Equal(t, 64, evt.Score)
+	
+	// Get the updated board from the event
+	b = evt.Board.(MatriXBoard)
+	assert.Equal(t, 64, b.score)
+
+	// Second move should add to existing score
+	// Row 7 last 3 tiles are 2s (score = 6)
+	evt = b.MakeMove(CreateTile(7, 6), CreateTile(7, 5))
+	assert.Equal(t, 70, evt.Score)
+	
+	b = evt.Board.(MatriXBoard)
+	assert.Equal(t, 70, b.score)
 }
 
 func getGameBoard() MatriXBoard {

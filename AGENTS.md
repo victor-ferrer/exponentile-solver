@@ -77,15 +77,15 @@ The `findGroup(x, y int)` function identifies matching tiles that can be combine
 
 When a valid group is found after a swap:
 
-1. **Upgrade middle tile**: The tile at index `len(group)/2` is upgraded to the next power of 2
+1. **Upgrade moved tile**: The tile that was moved (t2 position, or t1 if t2 is not in the group) is upgraded to the next power of 2
 2. **Drop other tiles**: All other tiles in the group are dropped and replaced with random tiles (values 2, 4, 8, 16, or 32)
-3. **Calculate score**: Score = `currentValue * len(group)` (e.g., 4 tiles of value 16 = 64 points)
+3. **Calculate and increment score**: Score increments by the sum of all tile values in the group (calculated by `calculateGroupScore()`)
 
 **Example with 4-tile group:**
 - Group: [(7,0), (7,1), (7,2), (7,3)] all with value 16
-- Middle index: 4/2 = 2
-- After merge: position (7,2) becomes 32, others are dropped and replaced
-- Score: 16 * 4 = 64 points
+- Move tile from (7,3) to (7,2): creates a group
+- After merge: position (7,2) (the moved tile) becomes 32, others are dropped and replaced
+- Score increment: 16 + 16 + 16 + 16 = 64 points (total score is cumulative across all moves)
 
 ## Current Development Focus
 

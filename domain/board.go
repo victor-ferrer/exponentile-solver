@@ -116,6 +116,16 @@ func (b MatriXBoard) findGroup(x, y int) []Tile {
 	return result
 }
 
+// calculateGroupScore calculates the score for a group of tiles
+// The score is the sum of all tile values in the group
+func (b MatriXBoard) calculateGroupScore(group []Tile) int {
+	score := 0
+	for _, tile := range group {
+		score += b.Get(tile.X, tile.Y)
+	}
+	return score
+}
+
 func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	// Check if the swap is valid (contiguous tiles)
 	if !areContiguous(t1, t2) {
@@ -147,29 +157,49 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 		}
 	}
 
+	// Calculate and increment score before modifying the board
+	scoreIncrease := b.calculateGroupScore(group)
+	b.score += scoreIncrease
+
 	// Calculate the replacement value (next power of 2)
 	currentValue := b.Get(group[0].X, group[0].Y)
 	nextValue := currentValue * 2
 
-	// Keep the middle tile and drop all others with random tiles
-	middleIndex := len(group) / 2
-	middleTile := group[middleIndex]
-	b.m.Set(middleTile.X, middleTile.Y, float64(nextValue))
+	// Determine which tile to keep (the one that was moved to create the group)
+	// First check t2 (where t1 was moved to), then t1
+	var keptTile Tile
+	keptTileFound := false
+	for _, tile := range group {
+		if tile.X == t2.X && tile.Y == t2.Y {
+			keptTile = tile
+			keptTileFound = true
+			break
+		}
+	}
+	if !keptTileFound {
+		for _, tile := range group {
+			if tile.X == t1.X && tile.Y == t1.Y {
+				keptTile = tile
+				keptTileFound = true
+				break
+			}
+		}
+	}
+
+	// Upgrade the kept tile
+	b.m.Set(keptTile.X, keptTile.Y, float64(nextValue))
 
 	// Drop all other tiles and replace with random tiles
-	for i, tile := range group {
-		if i != middleIndex {
+	for _, tile := range group {
+		if tile.X != keptTile.X || tile.Y != keptTile.Y {
 			b.dropTile(tile, GetSeqNumber(rand.Intn(5)+1))
 		}
 	}
 
-	// Calculate score increase
-	score := currentValue * len(group)
-
 	return GameEvent{
 		Board: b,
 		Type:  EVENT_TYPE_GAME_UPDATED,
-		Score: score,
+		Score: b.score,
 	}
 }
 
