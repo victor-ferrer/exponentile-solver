@@ -2,46 +2,111 @@
 
 Golang engine that solves the game Exponentile: https://www.bellika.dk/exponentile
 
-The game is played in a 8x8 board by swapping contiguos tiles. When three or more are lined up, they are combined into a single one bearing the next power of two (2,4,8,16,...).
-The game is harder as time passes as more numbers are present in the board and is harded to line 3 of them with the same value.
+The game is played on an 8x8 board by swapping contiguous tiles. When three or more tiles with the same value line up, they combine into a single tile bearing the next power of two (2, 4, 8, 16, ...).
 
+The game becomes harder as more numbers appear on the board, making it increasingly difficult to line up 3 or more tiles with the same value.
 
-# Ideas
+## Game Mechanics
 
-## Mimic the current game engine (ongoing):
+### Group Detection
 
--  Board operations:
- - [x] Swap tiles.
- - [x] Drop tiles that match.
- - [ ] Get groups of tiles.
- - [ ] Calculate scores of the removed tiles.
--  Project infrastructure:
- - [x] Add tests and some Github Actions executing them.
- - [ ] Run linters on the CI pipeline.
--  A UI to play around: 
- - [x] The most basic form of UI to play the game: A CLI. Just for laughs.
- - [ ] Map the basic board operations to the UI.
+The engine scans for matching tiles both horizontally and vertically:
+- Groups must contain **3 or more** contiguous tiles with the same value
+- Both horizontal and vertical runs are detected and combined if they form a cross/plus shape
+- The center tile is counted only once when both runs exist
 
+**Example:**
+```
+Row 7: [16, 16, 16, 16, 8, 2, 2, 2]
+- Positions (7,0) through (7,3): 4-tile group of 16s
+- Positions (7,5) through (7,7): 3-tile group of 2s
+```
 
-## Implement some strategies that solve the game (future):
+### Group Merging
+
+When a valid group is formed after a swap:
+1. The **moved tile** (the tile that was swapped to create the group) is upgraded to the next power of 2
+2. All other tiles in the group are dropped and replaced with random tiles (values: 2, 4, 8, 16, or 32)
+3. **Score** is calculated as: `currentValue × groupSize`
+
+**Example:**
+- Group of 4 tiles with value 16 at positions (7,0), (7,1), (7,2), (7,3)
+- Moving tile from (7,3) to (7,2) creates the group
+- The moved tile at (7,2) becomes 32
+- Other 3 tiles are dropped and replaced
+- Score: 16 × 4 = 64 points
+
+## Project Status
+
+### Completed Features ✅
+
+**Board Operations:**
+- ✅ Swap tiles
+- ✅ Drop tiles that match
+- ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
+- ✅ Calculate scores of removed tiles
+
+**Infrastructure:**
+- ✅ Tests with GitHub Actions
+- ⏳ Linters on CI pipeline (planned)
+
+**UI:**
+- ✅ Basic CLI interface using TVIEW
+- ⏳ Map basic board operations to UI (in progress)
+
+### Future Plans
+
+**TODO:**
+- ⏳ Reevaluate the board once a group is gone (detect cascading matches)
+
+**Implement solving strategies:**
 - Top-bottom, bottom-top, random, etc.
-- Benchmark the score after a given number of moves, maximum score before game end, execution time, etc.
-- Have some Github action that postes the results of such benchmarks.
+- Benchmark: score after N moves, maximum score before game end, execution time
+- GitHub Actions to post benchmark results
 
-# Current UI status
+## How to Run
+
+**Build and run:**
+```bash
+go build
+.\solver.exe
+```
+
+**Or run directly:**
+```bash
+go run main.go
+```
+
+**Gameplay:**
+1. Once the board appears, hit Enter
+2. Select two tiles to swap them
+3. Valid swaps that create groups of 3+ matching tiles will merge them
+
+## How to Test
+
+```bash
+go test ./...
+```
+
+## Current UI
 
 ![Current Board status](./docs/ui_board.PNG)
 
-Black and White colour schema for now.
+Black and White color schema for now.
 
-# How to run it
+## Technology Stack
 
-Run it with:
-- `go run main.go`
-- Once the board appears, hit enter and the you can select two tiles in order to swap them. 
-- That is for now.
+- **Language:** Go 1.22
+- **CLI UI:** [TVIEW](https://github.com/rivo/tview) for rendering the terminal UI
+- **Matrix Operations:** [GoNum](https://github.com/gonum/matrix) matrix package
 
-# Stack
-- Golang 1.22
-- [TVIEW](https://github.com/rivo/tview) for rendering the CLI UI.
-- [GoNum](https://github.com/gonum/matrix) matrix package for Golang. 
+## Architecture
+
+This project follows Domain-Driven Design principles:
+
+- **Domain Layer** (`domain/` package): Contains core game logic and board operations
+- **Event-Based Communication**: Domain communicates via events, not direct calls
+- **UI Layer** (`ui/` package): CLI interface implementation (other UIs may be added later)
+- **Separation of Concerns**: Domain logic is independent of UI and infrastructure
+
+See [AGENTS.md](AGENTS.md) for detailed development guidelines and game mechanics documentation.

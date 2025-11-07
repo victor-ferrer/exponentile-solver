@@ -17,8 +17,13 @@ func main() {
 	flex := tview.NewFlex()
 	flex.SetDirection(tview.FlexRow)
 
-	table := ui.NewUIBoard(board, app)
-	flex.AddItem(table, 0, 7, false)
+	text := tview.NewTextView()
+
+	text.SetText("Debug:")
+	flex.AddItem(text, 0, 1, false)
+
+	table := ui.NewUIBoard(board, app, text)
+	flex.AddItem(table, 0, 8, false)
 
 	if err := app.SetRoot(flex, true).SetFocus(table).Run(); err != nil {
 		panic(err)

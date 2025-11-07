@@ -53,14 +53,47 @@ go test ./...
 - Keep domain logic in `domain/` package pure and testable
 - UI implementations should consume domain events rather than directly manipulating domain objects
 - Write tests for new domain logic in `*_test.go` files
+- **Update README.md** along with code changes to keep documentation in sync
+
+## Game Mechanics
+
+### Group Detection (`findGroup`)
+
+The `findGroup(x, y int)` function identifies matching tiles that can be combined:
+
+**Algorithm:**
+1. Scans horizontally (left/right) from position (x,y) to find contiguous tiles with the same value
+2. Scans vertically (up/down) from position (x,y) to find contiguous tiles with the same value
+3. Returns all tiles from runs of 3 or more in both directions
+4. If both horizontal and vertical runs exist (forming a cross/plus shape), returns tiles from both runs
+5. The center tile at (x,y) is only included once when both runs exist
+
+**Example:**
+- Row 7: [16, 16, 16, 16, 8, 2, 2, 2]
+- `findGroup(7, 0)` returns 4 tiles: [(7,0), (7,1), (7,2), (7,3)]
+- `findGroup(7, 7)` returns 3 tiles: [(7,5), (7,6), (7,7)]
+
+### Group Merging (`MakeMove`)
+
+When a valid group is found after a swap:
+
+1. **Upgrade moved tile**: The tile that was moved (t2 position, or t1 if t2 is not in the group) is upgraded to the next power of 2
+2. **Drop other tiles**: All other tiles in the group are dropped and replaced with random tiles (values 2, 4, 8, 16, or 32)
+3. **Calculate and increment score**: Score increments by the sum of all tile values in the group (calculated by `calculateGroupScore()`)
+
+**Example with 4-tile group:**
+- Group: [(7,0), (7,1), (7,2), (7,3)] all with value 16
+- Move tile from (7,3) to (7,2): creates a group
+- After merge: position (7,2) (the moved tile) becomes 32, others are dropped and replaced
+- Score increment: 16 + 16 + 16 + 16 = 64 points (total score is cumulative across all moves)
 
 ## Current Development Focus
 
 1. **Board Operations** (ongoing):
    - ✅ Swap tiles
    - ✅ Drop tiles that match
-   - ⏳ Get groups of tiles
-   - ⏳ Calculate scores of removed tiles
+   - ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
+   - ✅ Calculate scores of removed tiles
 
 2. **UI Development** (ongoing):
    - ✅ Basic CLI interface

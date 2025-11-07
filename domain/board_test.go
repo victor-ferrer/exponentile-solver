@@ -9,14 +9,13 @@ import (
 )
 
 func TestMain(m *testing.M) {
-
 	os.Exit(m.Run())
 }
 
 func TestSwap(t *testing.T) {
 
 	b := getGameBoard()
-	b.Swap(CreateTile(3, 0), CreateTile(4, 0))
+	b.swap(CreateTile(3, 0), CreateTile(4, 0))
 
 	val := b.Get(3, 0)
 	assert.Equal(t, 8, val)
@@ -30,7 +29,7 @@ func TestDrop(t *testing.T) {
 	// TODO this could be a table test
 	b := getGameBoard()
 
-	b.DropTile(CreateTile(7, 0), 32)
+	b.dropTile(CreateTile(7, 0), 32)
 	val := b.Get(7, 0)
 	assert.Equal(t, 8, val)
 
@@ -47,30 +46,102 @@ func TestDrop(t *testing.T) {
 func TestGetGroups(t *testing.T) {
 	b := getGameBoard()
 
-	result, err := b.FindGroup(7, 0)
-	assert.NoError(t, err)
-	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2)})
+	// Row 7: [16, 16, 16, 16, 8, 2, 2, 2] - horizontal run of 4 sixteens
+	result := b.findGroup(7, 0)
+	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2), CreateTile(7, 3)})
 
-	result, err = b.FindGroup(7, 7)
-	assert.NoError(t, err)
+	// Row 7: last three tiles are 2s
+	result = b.findGroup(7, 7)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
-	result, err = b.FindGroup(7, 6)
-	assert.NoError(t, err)
+	result = b.findGroup(7, 6)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
-	result, err = b.FindGroup(0, 0)
-	assert.NoError(t, err)
+	// No groups of 3+ for these tiles
+	result = b.findGroup(0, 0)
 	assert.Empty(t, result)
 
-	result, err = b.FindGroup(0, 1)
-	assert.NoError(t, err)
+	result = b.findGroup(0, 1)
 	assert.Empty(t, result)
 
-	result, err = b.FindGroup(0, 2)
-	assert.NoError(t, err)
+	result = b.findGroup(0, 2)
 	assert.Empty(t, result)
 
+}
+
+func TestMakeMove_InvalidSwap(t *testing.T) {
+	b := getGameBoard()
+
+	evt := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
+}
+
+func TestMakeMove_NoGroupFormed(t *testing.T) {
+	b := getGameBoard()
+
+	evt := b.MakeMove(CreateTile(0, 0), CreateTile(0, 1))
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
+	assert.Equal(t, 0, evt.Score)
+	assert.Equal(t, 2, b.Get(0, 0))
+	assert.Equal(t, 8, b.Get(0, 1))
+}
+
+func TestMakeMove_GroupFormed(t *testing.T) {
+	b := getGameBoard()
+
+	initialValue := b.Get(7, 2)
+	assert.Equal(t, 16, initialValue)
+
+	// Moving tile from (7,3) to (7,2)
+	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
+	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, evt.Type)
+
+	// Row 7 has 4 contiguous 16s
+	// The moved tile at (7,2) should be kept and upgraded
+	movedTileValue := b.Get(7, 2)
+	assert.Equal(t, 32, movedTileValue)
+
+	// Score should be the sum of the 4 tiles (16+16+16+16 = 64)
+	assert.Equal(t, 64, evt.Score)
+}
+
+func TestCalculateGroupScore(t *testing.T) {
+	b := getGameBoard()
+
+	// Test with 4 tiles of value 16
+	group := []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2), CreateTile(7, 3)}
+	score := b.calculateGroupScore(group)
+	assert.Equal(t, 64, score)
+
+	// Test with 3 tiles of value 2
+	group = []Tile{CreateTile(7, 5), CreateTile(7, 6), CreateTile(7, 7)}
+	score = b.calculateGroupScore(group)
+	assert.Equal(t, 6, score)
+
+	// Test with empty group
+	group = []Tile{}
+	score = b.calculateGroupScore(group)
+	assert.Equal(t, 0, score)
+}
+
+func TestMakeMove_ScoreIncrement(t *testing.T) {
+	b := getGameBoard()
+
+	// First move: Row 7, 4 tiles of value 16 (score = 64)
+	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
+	assert.Equal(t, 64, evt.Score)
+	
+	// Get the updated board from the event
+	b = evt.Board.(MatriXBoard)
+	assert.Equal(t, 64, b.score)
+
+	// Second move should add to existing score
+	// Row 7 last 3 tiles are 2s (score = 6)
+	evt = b.MakeMove(CreateTile(7, 6), CreateTile(7, 5))
+	assert.Equal(t, 70, evt.Score)
+	
+	b = evt.Board.(MatriXBoard)
+	assert.Equal(t, 70, b.score)
 }
 
 func getGameBoard() MatriXBoard {
