@@ -4,37 +4,29 @@ Golang engine that solves the game Exponentile: https://www.bellika.dk/exponenti
 
 The game is played on an 8x8 board by swapping contiguous tiles. When three or more tiles with the same value line up, they combine into a single tile bearing the next power of two (2, 4, 8, 16, ...).
 
+![Current Board status](./docs/ui_board.PNG)
+
 The game becomes harder as more numbers appear on the board, making it increasingly difficult to line up 3 or more tiles with the same value.
 
-## Game Mechanics
+See the detailed rules in the [Game Mechanics wiki page](https://github.com/victor-ferrer/exponentile-solver/wiki/Game-Mechanics).
 
-### Group Detection
+## How to run the game
 
-The engine scans for matching tiles both horizontally and vertically:
-- Groups must contain **3 or more** contiguous tiles with the same value
-- Both horizontal and vertical runs are detected and combined if they form a cross/plus shape
-- The center tile is counted only once when both runs exist
-
-**Example:**
-```
-Row 7: [16, 16, 16, 16, 8, 2, 2, 2]
-- Positions (7,0) through (7,3): 4-tile group of 16s
-- Positions (7,5) through (7,7): 3-tile group of 2s
+**Build:**
+```bash
+go build .\solver.exe
 ```
 
-### Group Merging
+**Or run directly:**
+```bash
+go run main.go
+```
 
-When a valid group is formed after a swap:
-1. The **moved tile** (the tile that was swapped to create the group) is upgraded to the next power of 2
-2. All other tiles in the group are dropped and replaced with random tiles (values: 2, 4, 8, 16, or 32)
-3. **Score** is calculated as: `currentValue × groupSize`
-
-**Example:**
-- Group of 4 tiles with value 16 at positions (7,0), (7,1), (7,2), (7,3)
-- Moving tile from (7,3) to (7,2) creates the group
-- The moved tile at (7,2) becomes 32
-- Other 3 tiles are dropped and replaced
-- Score: 16 × 4 = 64 points
+**Gameplay:**
+1. Once the board appears, hit Enter.
+2. Select two tiles to swap them.
+3. Valid swaps that create groups of 3+ matching tiles will merge them.
+4. Hit ESC to exit the game.
 
 ## Project Status
 
@@ -45,6 +37,7 @@ When a valid group is formed after a swap:
 - ✅ Drop tiles that match
 - ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
 - ✅ Calculate scores of removed tiles
+- ⏳ Reevaluate the board once a group is gone (detect cascading matches)
 
 **Infrastructure:**
 - ✅ Tests with GitHub Actions
@@ -56,43 +49,12 @@ When a valid group is formed after a swap:
 
 ### Future Plans
 
-**TODO:**
-- ⏳ Reevaluate the board once a group is gone (detect cascading matches)
+The interesting part, rather than just copying the game, would be to have several solving strategies and see which one performs better.
 
 **Implement solving strategies:**
 - Top-bottom, bottom-top, random, etc.
 - Benchmark: score after N moves, maximum score before game end, execution time
 - GitHub Actions to post benchmark results
-
-## How to Run
-
-**Build and run:**
-```bash
-go build
-.\solver.exe
-```
-
-**Or run directly:**
-```bash
-go run main.go
-```
-
-**Gameplay:**
-1. Once the board appears, hit Enter
-2. Select two tiles to swap them
-3. Valid swaps that create groups of 3+ matching tiles will merge them
-
-## How to Test
-
-```bash
-go test ./...
-```
-
-## Current UI
-
-![Current Board status](./docs/ui_board.PNG)
-
-Black and White color schema for now.
 
 ## Technology Stack
 
