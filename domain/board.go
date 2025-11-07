@@ -68,38 +68,52 @@ func (b MatriXBoard) Get(x, y int) int {
 	return int(b.m.At(x, y))
 }
 
-// Find Group: Finds tiles with the same value in the same row
-// TODO: Groups of three in the same row only
+// Find Group: Finds all tiles with the same value in straight lines (row and/or column)
+// Returns groups of 3 or more contiguous tiles
+// If both horizontal and vertical runs exist, returns both
 func (b MatriXBoard) findGroup(x, y int) []Tile {
-
-	row := b.m.RowView(x)
 	val := b.m.At(x, y)
-
 	result := []Tile{}
 
-	if y == width-1 {
-		// Look for tiles to the left
-		if row.AtVec(y-1) == val && row.AtVec(y-2) == val {
-			result = append(result, CreateTile(x, y), CreateTile(x, y-1), CreateTile(x, y-2))
-		}
-
+	// Find horizontal run extents
+	left, right := y, y
+	for left-1 >= 0 && b.m.At(x, left-1) == val {
+		left--
 	}
-	if y < width-1 && y > 0 {
-		// Look on both sides
-		if row.AtVec(y-1) == val && row.AtVec(y+1) == val {
-			result = append(result, CreateTile(x, y), CreateTile(x, y-1), CreateTile(x, y+1))
+	for right+1 < width && b.m.At(x, right+1) == val {
+		right++
+	}
+	hlen := right - left + 1
+
+	// Find vertical run extents
+	up, down := x, x
+	for up-1 >= 0 && b.m.At(up-1, y) == val {
+		up--
+	}
+	for down+1 < width && b.m.At(down+1, y) == val {
+		down++
+	}
+	vlen := down - up + 1
+
+	// Add horizontal run if >= 3
+	if hlen >= 3 {
+		for col := left; col <= right; col++ {
+			result = append(result, CreateTile(x, col))
 		}
 	}
-	if y == 0 {
-		// Look for tiles to the right
-		if row.AtVec(y+1) == val && row.AtVec(y+2) == val {
-			result = append(result, CreateTile(x, y), CreateTile(x, y+1), CreateTile(x, y+2))
 
+	// Add vertical run if >= 3
+	if vlen >= 3 {
+		for row := up; row <= down; row++ {
+			tile := CreateTile(row, y)
+			// Avoid duplicating the center tile if both runs exist
+			if hlen < 3 || row != x {
+				result = append(result, tile)
+			}
 		}
 	}
 
 	return result
-
 }
 
 func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
@@ -137,16 +151,20 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	currentValue := b.Get(group[0].X, group[0].Y)
 	nextValue := currentValue * 2
 
-	// Keep the middle tile and drop the other two with random tiles
-	middleTile := group[1]
+	// Keep the middle tile and drop all others with random tiles
+	middleIndex := len(group) / 2
+	middleTile := group[middleIndex]
 	b.m.Set(middleTile.X, middleTile.Y, float64(nextValue))
 
-	// Drop the first and last tiles and replace with random tiles
-	b.dropTile(group[0], GetSeqNumber(rand.Intn(5)+1))
-	b.dropTile(group[2], GetSeqNumber(rand.Intn(5)+1))
+	// Drop all other tiles and replace with random tiles
+	for i, tile := range group {
+		if i != middleIndex {
+			b.dropTile(tile, GetSeqNumber(rand.Intn(5)+1))
+		}
+	}
 
 	// Calculate score increase
-	score := currentValue * 3
+	score := currentValue * len(group)
 
 	return GameEvent{
 		Board: b,

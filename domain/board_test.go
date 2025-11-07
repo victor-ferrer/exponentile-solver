@@ -46,15 +46,18 @@ func TestDrop(t *testing.T) {
 func TestGetGroups(t *testing.T) {
 	b := getGameBoard()
 
+	// Row 7: [16, 16, 16, 16, 8, 2, 2, 2] - horizontal run of 4 sixteens
 	result := b.findGroup(7, 0)
-	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2)})
+	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 0), CreateTile(7, 1), CreateTile(7, 2), CreateTile(7, 3)})
 
+	// Row 7: last three tiles are 2s
 	result = b.findGroup(7, 7)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
 	result = b.findGroup(7, 6)
 	assert.ElementsMatch(t, result, []Tile{CreateTile(7, 7), CreateTile(7, 6), CreateTile(7, 5)})
 
+	// No groups of 3+ for these tiles
 	result = b.findGroup(0, 0)
 	assert.Empty(t, result)
 
@@ -91,8 +94,10 @@ func TestMakeMove_GroupFormed(t *testing.T) {
 
 	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
 	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, evt.Type)
-	
-	middleTileValue := b.Get(7, 1)
+
+	// Row 7 has 4 contiguous 16s, so middle index is 2 (positions 0-3, middle at index 2)
+	// After merge, position (7,2) should have the upgraded value
+	middleTileValue := b.Get(7, 2)
 	assert.Equal(t, 32, middleTileValue)
 }
 
