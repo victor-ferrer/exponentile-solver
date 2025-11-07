@@ -66,7 +66,7 @@ func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.Text
 					debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
 				}
 
-				renderBoard(evt.Board, table)
+				renderTileStates(evt.Tiles, table)
 			}
 
 			// Clear selection
@@ -83,14 +83,11 @@ func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.Text
 
 }
 
-func renderBoard(board domain.Board, table *tview.Table) {
-	for r := range ROWS {
-		for c := range COLS {
-			value := board.Get(r, c)
-			cell := tview.NewTableCell(fmt.Sprintf(" \n %d \n ", value))
-			cell.SetBackgroundColor(getTileColor(value))
-			table.SetCell(r, c, cell)
-		}
+func renderTileStates(tiles []domain.TileState, table *tview.Table) {
+	for _, tileState := range tiles {
+		cell := tview.NewTableCell(fmt.Sprintf(" \n %d \n ", tileState.Value))
+		cell.SetBackgroundColor(getTileColor(tileState.Value))
+		table.SetCell(tileState.Position.X, tileState.Position.Y, cell)
 	}
 }
 

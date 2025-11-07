@@ -13,8 +13,9 @@ const (
 )
 
 type MatriXBoard struct {
-	m     *mat.Dense
-	score int
+	m        *mat.Dense
+	score    int
+	sequence int
 }
 
 const width = 8
@@ -31,20 +32,13 @@ func NewBoard() MatriXBoard {
 
 }
 
-func (b MatriXBoard) swap(t1, t2 Tile) GameEvent {
+func (b *MatriXBoard) swap(t1, t2 Tile) {
 	aux := b.m.At(t1.X, t1.Y)
-
 	b.m.Set(t1.X, t1.Y, b.m.At(t2.X, t2.Y))
 	b.m.Set(t2.X, t2.Y, aux)
-
-	return GameEvent{
-		Type:  EVENT_TYPE_GAME_UPDATED,
-		Board: b,
-		Score: b.score,
-	}
 }
 
-func (b MatriXBoard) dropTile(target Tile, newValue int) {
+func (b *MatriXBoard) dropTile(target Tile, newValue int) {
 	col := target.Y
 	for row := target.X; row > 0; row-- {
 		b.swap(CreateTile(row, col), CreateTile(row-1, col))
@@ -53,14 +47,27 @@ func (b MatriXBoard) dropTile(target Tile, newValue int) {
 
 }
 
-func (b MatriXBoard) Get(x, y int) int {
+func (b *MatriXBoard) Get(x, y int) int {
 	return int(b.m.At(x, y))
+}
+
+func (b *MatriXBoard) getTileStates() []TileState {
+	tiles := make([]TileState, 0, width*width)
+	for x := 0; x < width; x++ {
+		for y := 0; y < width; y++ {
+			tiles = append(tiles, TileState{
+				Position: CreateTile(x, y),
+				Value:    b.Get(x, y),
+			})
+		}
+	}
+	return tiles
 }
 
 // Find Group: Finds all tiles with the same value in straight lines (row and/or column)
 // Returns groups of 3 or more contiguous tiles
 // If both horizontal and vertical runs exist, returns both
-func (b MatriXBoard) findGroup(x, y int) []Tile {
+func (b *MatriXBoard) findGroup(x, y int) []Tile {
 	val := b.m.At(x, y)
 	result := []Tile{}
 
@@ -107,7 +114,7 @@ func (b MatriXBoard) findGroup(x, y int) []Tile {
 
 // calculateGroupScore calculates the score for a group of tiles
 // The score is the sum of all tile values in the group
-func (b MatriXBoard) calculateGroupScore(group []Tile) int {
+func (b *MatriXBoard) calculateGroupScore(group []Tile) int {
 	score := 0
 	for _, tile := range group {
 		score += b.Get(tile.X, tile.Y)
@@ -115,13 +122,16 @@ func (b MatriXBoard) calculateGroupScore(group []Tile) int {
 	return score
 }
 
-func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
+func (b *MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
+	b.sequence++
+	
 	// Check if the swap is valid (contiguous tiles)
 	if !areContiguous(t1, t2) {
 		return GameEvent{
-			Board: b,
-			Type:  EVENT_TYPE_NO_CHANGES,
-			Score: b.score,
+			Type:     EVENT_TYPE_NO_CHANGES,
+			Sequence: b.sequence,
+			Tiles:    b.getTileStates(),
+			Score:    b.score,
 		}
 	}
 
@@ -140,9 +150,10 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	if len(group) == 0 {
 		b.swap(t1, t2)
 		return GameEvent{
-			Board: b,
-			Type:  EVENT_TYPE_NO_CHANGES,
-			Score: b.score,
+			Type:     EVENT_TYPE_NO_CHANGES,
+			Sequence: b.sequence,
+			Tiles:    b.getTileStates(),
+			Score:    b.score,
 		}
 	}
 
@@ -186,8 +197,9 @@ func (b MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	}
 
 	return GameEvent{
-		Board:        b,
 		Type:         EVENT_TYPE_GAME_UPDATED,
+		Sequence:     b.sequence,
+		Tiles:        b.getTileStates(),
 		Score:        b.score,
 		GroupedTiles: group,
 	}

@@ -130,17 +130,14 @@ func TestMakeMove_ScoreIncrement(t *testing.T) {
 	// First move: Row 7, 4 tiles of value 16 (score = 64)
 	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
 	assert.Equal(t, 64, evt.Score)
-	
-	// Get the updated board from the event
-	b = evt.Board.(MatriXBoard)
+	assert.Equal(t, 1, evt.Sequence)
 	assert.Equal(t, 64, b.score)
 
 	// Second move should add to existing score
 	// Row 7 last 3 tiles are 2s (score = 6)
 	evt = b.MakeMove(CreateTile(7, 6), CreateTile(7, 5))
 	assert.Equal(t, 70, evt.Score)
-	
-	b = evt.Board.(MatriXBoard)
+	assert.Equal(t, 2, evt.Sequence)
 	assert.Equal(t, 70, b.score)
 }
 

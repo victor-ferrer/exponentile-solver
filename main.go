@@ -20,7 +20,7 @@ func main() {
 	debugTxt := tview.NewTextView()
 	debugTxt.SetText("Debug:")
 
-	table := ui.NewUIBoard(board, app, debugTxt)
+	table := ui.NewUIBoard(&board, app, debugTxt)
 	flex.AddItem(table, 57, 4, false)
 	flex.AddItem(debugTxt, 0, 1, false)
 

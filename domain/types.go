@@ -1,8 +1,14 @@
 package domain
 
+type TileState struct {
+	Position Tile
+	Value    int
+}
+
 type GameEvent struct {
 	Type         string
-	Board        Board
+	Sequence     int
+	Tiles        []TileState
 	Score        int
 	GroupedTiles []Tile
 }
