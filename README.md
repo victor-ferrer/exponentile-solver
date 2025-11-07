@@ -17,6 +17,7 @@ See the detailed rules in the [Game Mechanics wiki page](https://github.com/vict
 - ✅ Drop tiles that match
 - ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
 - ✅ Calculate scores of removed tiles
+- ⏳ Reevaluate the board once a group is gone (detect cascading matches)
 
 **Infrastructure:**
 - ✅ Tests with GitHub Actions
@@ -28,8 +29,7 @@ See the detailed rules in the [Game Mechanics wiki page](https://github.com/vict
 
 ### Future Plans
 
-**TODO:**
-- ⏳ Reevaluate the board once a group is gone (detect cascading matches)
+The interesting part, rather than just copying the game, would be to have several solving strategies and see which one performs better.
 
 **Implement solving strategies:**
 - Top-bottom, bottom-top, random, etc.
