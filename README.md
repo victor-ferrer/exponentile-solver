@@ -4,9 +4,29 @@ Golang engine that solves the game Exponentile: https://www.bellika.dk/exponenti
 
 The game is played on an 8x8 board by swapping contiguous tiles. When three or more tiles with the same value line up, they combine into a single tile bearing the next power of two (2, 4, 8, 16, ...).
 
+![Current Board status](./docs/ui_board.PNG)
+
 The game becomes harder as more numbers appear on the board, making it increasingly difficult to line up 3 or more tiles with the same value.
 
 See the detailed rules in the [Game Mechanics wiki page](https://github.com/victor-ferrer/exponentile-solver/wiki/Game-Mechanics).
+
+## How to run the game
+
+**Build:**
+```bash
+go build .\solver.exe
+```
+
+**Or run directly:**
+```bash
+go run main.go
+```
+
+**Gameplay:**
+1. Once the board appears, hit Enter.
+2. Select two tiles to swap them.
+3. Valid swaps that create groups of 3+ matching tiles will merge them.
+4. Hit ESC to exit the game.
 
 ## Project Status
 
@@ -35,28 +55,6 @@ The interesting part, rather than just copying the game, would be to have severa
 - Top-bottom, bottom-top, random, etc.
 - Benchmark: score after N moves, maximum score before game end, execution time
 - GitHub Actions to post benchmark results
-
-## How to Run
-
-**Build and run:**
-```bash
-go build
-.\solver.exe
-```
-
-**Or run directly:**
-```bash
-go run main.go
-```
-
-**Gameplay:**
-1. Once the board appears, hit Enter
-2. Select two tiles to swap them
-3. Valid swaps that create groups of 3+ matching tiles will merge them
-
-## Current UI
-
-![Current Board status](./docs/ui_board.PNG)
 
 ## Technology Stack
 
