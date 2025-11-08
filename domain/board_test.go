@@ -72,16 +72,18 @@ func TestGetGroups(t *testing.T) {
 func TestMakeMove_InvalidSwap(t *testing.T) {
 	b := getGameBoard()
 
-	evt := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
-	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
+	events := b.MakeMove(CreateTile(0, 0), CreateTile(2, 2))
+	assert.Len(t, events, 1)
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, events[0].Type)
 }
 
 func TestMakeMove_NoGroupFormed(t *testing.T) {
 	b := getGameBoard()
 
-	evt := b.MakeMove(CreateTile(0, 0), CreateTile(0, 1))
-	assert.Equal(t, EVENT_TYPE_NO_CHANGES, evt.Type)
-	assert.Equal(t, 0, evt.Score)
+	events := b.MakeMove(CreateTile(0, 0), CreateTile(0, 1))
+	assert.Len(t, events, 1)
+	assert.Equal(t, EVENT_TYPE_NO_CHANGES, events[0].Type)
+	assert.Equal(t, 0, events[0].Score)
 	assert.Equal(t, 2, b.Get(0, 0))
 	assert.Equal(t, 8, b.Get(0, 1))
 }
@@ -93,8 +95,9 @@ func TestMakeMove_GroupFormed(t *testing.T) {
 	assert.Equal(t, 16, initialValue)
 
 	// Moving tile from (7,3) to (7,2)
-	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
-	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, evt.Type)
+	events := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
+	assert.Len(t, events, 1)
+	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, events[0].Type)
 
 	// Row 7 has 4 contiguous 16s
 	// The moved tile at (7,2) should be kept and upgraded
@@ -102,7 +105,7 @@ func TestMakeMove_GroupFormed(t *testing.T) {
 	assert.Equal(t, 32, movedTileValue)
 
 	// Score should be the sum of the 4 tiles (16+16+16+16 = 64)
-	assert.Equal(t, 64, evt.Score)
+	assert.Equal(t, 64, events[0].Score)
 }
 
 func TestCalculateGroupScore(t *testing.T) {
@@ -128,16 +131,18 @@ func TestMakeMove_ScoreIncrement(t *testing.T) {
 	b := getGameBoard()
 
 	// First move: Row 7, 4 tiles of value 16 (score = 64)
-	evt := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
-	assert.Equal(t, 64, evt.Score)
-	assert.Equal(t, 1, evt.Sequence)
+	events := b.MakeMove(CreateTile(7, 3), CreateTile(7, 2))
+	assert.Len(t, events, 1)
+	assert.Equal(t, 64, events[0].Score)
+	assert.Equal(t, 1, events[0].Sequence)
 	assert.Equal(t, 64, b.score)
 
 	// Second move should add to existing score
 	// Row 7 last 3 tiles are 2s (score = 6)
-	evt = b.MakeMove(CreateTile(7, 6), CreateTile(7, 5))
-	assert.Equal(t, 70, evt.Score)
-	assert.Equal(t, 2, evt.Sequence)
+	events = b.MakeMove(CreateTile(7, 6), CreateTile(7, 5))
+	assert.Len(t, events, 1)
+	assert.Equal(t, 70, events[0].Score)
+	assert.Equal(t, 2, events[0].Sequence)
 	assert.Equal(t, 70, b.score)
 }
 

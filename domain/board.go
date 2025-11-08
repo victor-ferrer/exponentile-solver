@@ -122,17 +122,17 @@ func (b *MatriXBoard) calculateGroupScore(group []Tile) int {
 	return score
 }
 
-func (b *MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
+func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	b.sequence++
 	
 	// Check if the swap is valid (contiguous tiles)
 	if !areContiguous(t1, t2) {
-		return GameEvent{
+		return []GameEvent{{
 			Type:     EVENT_TYPE_NO_CHANGES,
 			Sequence: b.sequence,
 			Tiles:    b.getTileStates(),
 			Score:    b.score,
-		}
+		}}
 	}
 
 	// Swap the tiles
@@ -149,12 +149,12 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	// If no group was found, swap back and return no changes
 	if len(group) == 0 {
 		b.swap(t1, t2)
-		return GameEvent{
+		return []GameEvent{{
 			Type:     EVENT_TYPE_NO_CHANGES,
 			Sequence: b.sequence,
 			Tiles:    b.getTileStates(),
 			Score:    b.score,
-		}
+		}}
 	}
 
 	// Calculate and increment score before modifying the board
@@ -196,13 +196,13 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 		}
 	}
 
-	return GameEvent{
+	return []GameEvent{{
 		Type:         EVENT_TYPE_GAME_UPDATED,
 		Sequence:     b.sequence,
 		Tiles:        b.getTileStates(),
 		Score:        b.score,
 		GroupedTiles: group,
-	}
+	}}
 }
 
 func areContiguous(t1, t2 Tile) bool {

@@ -52,21 +52,27 @@ func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.Text
 			secondSelectX = row
 			secondSelectY = column
 
-			evt := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
+			events := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
 
-			debugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", evt.Type, evt.Score))
+			for _, evt := range events {
+				debugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", evt.Type, evt.Score))
 
-			if evt.Type == domain.EVENT_TYPE_GAME_UPDATED {
+				switch evt.Type {
+				case domain.EVENT_TYPE_GAME_UPDATED:
 
-				if len(evt.GroupedTiles) > 0 {
-					groupedTilesTxt := ""
-					for _, tile := range evt.GroupedTiles {
-						groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, board.Get(tile.X, tile.Y))
+					if len(evt.GroupedTiles) > 0 {
+						groupedTilesTxt := ""
+						for _, tile := range evt.GroupedTiles {
+							groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, board.Get(tile.X, tile.Y))
+						}
+						debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
 					}
-					debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
-				}
 
-				renderTileStates(evt.Tiles, table)
+					renderTileStates(evt.Tiles, table)
+				case domain.EVENT_TYPE_GAME_OVER:
+					debugTxt.SetText(fmt.Sprintf("%s \n - Game Over", debugTxt.GetText(true)))
+					table.SetSelectable(false, false)
+				}
 			}
 
 			// Clear selection
@@ -107,12 +113,14 @@ func getTileColor(value int) tcell.Color {
 		return tcell.ColorRed
 	case 128:
 		return tcell.ColorPurple
-	case 518:
+	case 256:
+		return tcell.ColorTurquoise
+	case 512:
 		return tcell.ColorTurquoise
 	case 1024:
 		return tcell.ColorMaroon
 	case 2048:
-		return tcell.ColorGray
+		return tcell.ColorDarkCyan
 	default:
 		return tcell.ColorGray
 	}
