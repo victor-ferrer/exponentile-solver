@@ -5,12 +5,17 @@ type TileState struct {
 	Value    int
 }
 
+type Group struct {
+	Tiles []Tile
+	Value int
+}
+
 type GameEvent struct {
-	Type         string
-	Sequence     int
-	Tiles        []TileState
-	Score        int
-	GroupedTiles []Tile
+	Type     string
+	Sequence int
+	Tiles    []TileState
+	Score    int
+	Group    Group
 }
 
 type Board interface {

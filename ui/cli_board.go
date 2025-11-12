@@ -60,10 +60,10 @@ func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.Text
 				switch evt.Type {
 				case domain.EVENT_TYPE_GAME_UPDATED:
 
-					if len(evt.GroupedTiles) > 0 {
+					if len(evt.Group.Tiles) > 0 {
 						groupedTilesTxt := ""
-						for _, tile := range evt.GroupedTiles {
-							groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, board.Get(tile.X, tile.Y))
+						for _, tile := range evt.Group.Tiles {
+							groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, evt.Group.Value)
 						}
 						debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
 					}
