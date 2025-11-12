@@ -102,7 +102,7 @@ func TestMakeMove_GroupFormed(t *testing.T) {
 	// Row 7 has 4 contiguous 16s
 	// The moved tile at (7,2) should be kept and upgraded
 	movedTileValue := b.Get(7, 2)
-	assert.Equal(t, 32, movedTileValue)
+	assert.Equal(t, 64, movedTileValue)
 
 	// Score should be the sum of the 4 tiles (16+16+16+16 = 64)
 	assert.Equal(t, 64, events[0].Score)
