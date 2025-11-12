@@ -38,7 +38,7 @@ go run main.go
 - ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
 - ✅ Calculate scores of removed tiles
 - ⏳ Reevaluate the board once a group is gone (detect cascading matches)
-- ⏳ Bigger groups return higher new tiles
+- ✅ Bigger groups return higher new tiles
 
 **Infrastructure:**
 - ✅ Tests with GitHub Actions
