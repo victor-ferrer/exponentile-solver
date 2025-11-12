@@ -24,7 +24,7 @@ func NewBoard() MatriXBoard {
 
 	data := make([]float64, width*width)
 	for i := range data {
-		data[i] = float64(GetSeqNumber(rand.Intn(5) + 1))
+		data[i] = float64(getSeqNumber(rand.Intn(5) + 1))
 	}
 	return MatriXBoard{
 		m: mat.NewDense(width, width, data),
@@ -122,17 +122,17 @@ func (b *MatriXBoard) calculateGroupScore(group []Tile) int {
 	return score
 }
 
-func (b *MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
+func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	b.sequence++
-	
+
 	// Check if the swap is valid (contiguous tiles)
-	if !areContiguous(t1, t2) {
-		return GameEvent{
+	if !t1.isContinous(t2) {
+		return []GameEvent{{
 			Type:     EVENT_TYPE_NO_CHANGES,
 			Sequence: b.sequence,
 			Tiles:    b.getTileStates(),
 			Score:    b.score,
-		}
+		}}
 	}
 
 	// Swap the tiles
@@ -149,12 +149,12 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	// If no group was found, swap back and return no changes
 	if len(group) == 0 {
 		b.swap(t1, t2)
-		return GameEvent{
+		return []GameEvent{{
 			Type:     EVENT_TYPE_NO_CHANGES,
 			Sequence: b.sequence,
 			Tiles:    b.getTileStates(),
 			Score:    b.score,
-		}
+		}}
 	}
 
 	// Calculate and increment score before modifying the board
@@ -192,27 +192,15 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) GameEvent {
 	// Drop all other tiles and replace with random tiles
 	for _, tile := range group {
 		if tile.X != keptTile.X || tile.Y != keptTile.Y {
-			b.dropTile(tile, GetSeqNumber(rand.Intn(5)+1))
+			b.dropTile(tile, getSeqNumber(rand.Intn(5)+1))
 		}
 	}
 
-	return GameEvent{
-		Type:         EVENT_TYPE_GAME_UPDATED,
-		Sequence:     b.sequence,
-		Tiles:        b.getTileStates(),
-		Score:        b.score,
-		GroupedTiles: group,
-	}
-}
-
-func areContiguous(t1, t2 Tile) bool {
-	// Check if tiles are adjacent horizontally
-	if t1.X == t2.X && (t1.Y == t2.Y+1 || t1.Y == t2.Y-1) {
-		return true
-	}
-	// Check if tiles are adjacent vertically
-	if t1.Y == t2.Y && (t1.X == t2.X+1 || t1.X == t2.X-1) {
-		return true
-	}
-	return false
+	return []GameEvent{{
+		Type:     EVENT_TYPE_GAME_UPDATED,
+		Sequence: b.sequence,
+		Tiles:    b.getTileStates(),
+		Score:    b.score,
+		Group:    Group{Tiles: group, Value: currentValue},
+	}}
 }
