@@ -5,11 +5,6 @@ type TileState struct {
 	Value    int
 }
 
-type Group struct {
-	Tiles []Tile
-	Value int
-}
-
 type GameEvent struct {
 	Type     string
 	Sequence int
