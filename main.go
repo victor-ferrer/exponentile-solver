@@ -17,10 +17,7 @@ func main() {
 	flex := tview.NewFlex()
 	flex.SetDirection(tview.FlexColumn)
 
-	debugTxt := tview.NewTextView()
-	debugTxt.SetText("Debug:")
-
-	table := ui.NewUIBoard(&board, app, debugTxt)
+	table, debugTxt := ui.NewUIBoard(&board, app)
 	flex.AddItem(table, 57, 4, false)
 	flex.AddItem(debugTxt, 0, 1, false)
 
