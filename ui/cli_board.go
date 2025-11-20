@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"time"
 	"victor-ferrer/solver/domain"
 
 	"github.com/gdamore/tcell/v2"
@@ -13,15 +14,12 @@ const (
 	ROWS = 8
 )
 
-func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.TextView) *tview.Table {
+func NewUIBoard(board domain.Board, app *tview.Application) (*tview.Table, *tview.TextView) {
+
+	debugTxt := tview.NewTextView()
+	debugTxt.SetText("Debug:")
 
 	table := tview.NewTable().SetBorders(false).SetSeparator('│')
-
-	firstSelectedX := -1
-	firstSelectedY := -1
-
-	secondSelectX := -1
-	secondSelectY := -1
 
 	for r := range ROWS {
 		for c := range COLS {
@@ -36,15 +34,37 @@ func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.Text
 
 		}
 	}
-	table.Select(0, 0).SetFixed(1, 1).SetDoneFunc(func(key tcell.Key) {
+	selectFunc := createSelectFunc(board, app, table, debugTxt)
+	doneFunc := createDoneFunc(app, table)
+	table.Select(0, 0).SetFixed(1, 1).SetDoneFunc(doneFunc).SetSelectedFunc(selectFunc)
+
+	return table, debugTxt
+
+}
+
+func createDoneFunc(app *tview.Application, table *tview.Table) func(key tcell.Key) {
+	return func(key tcell.Key) {
 		if key == tcell.KeyEscape {
 			app.Stop()
 		}
 		if key == tcell.KeyEnter {
 			table.SetSelectable(true, true)
 		}
-	}).SetSelectedFunc(func(row int, column int) {
+	}
+}
 
+func createSelectFunc(
+	board domain.Board,
+	app *tview.Application,
+	table *tview.Table,
+	debugTxt *tview.TextView,
+) func(row int, column int) {
+	firstSelectedX := -1
+	firstSelectedY := -1
+	secondSelectX := -1
+	secondSelectY := -1
+
+	return func(row int, column int) {
 		if firstSelectedX < 0 {
 			firstSelectedX = row
 			firstSelectedY = column
@@ -54,39 +74,54 @@ func NewUIBoard(board domain.Board, app *tview.Application, debugTxt *tview.Text
 
 			events := board.MakeMove(domain.CreateTile(firstSelectedX, firstSelectedY), domain.CreateTile(secondSelectX, secondSelectY))
 
-			for _, evt := range events {
-				debugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", evt.Type, evt.Score))
-
-				switch evt.Type {
-				case domain.EVENT_TYPE_GAME_UPDATED:
+			go func() {
+				for _, evt := range events {
 
 					if len(evt.Group.Tiles) > 0 {
-						groupedTilesTxt := ""
-						for _, tile := range evt.Group.Tiles {
-							groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, evt.Group.Value)
-						}
-						debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
+						app.QueueUpdateDraw(func() {
+							highlightTiles(evt, table)
+						})
 					}
+					time.Sleep(1 * time.Second)
 
-					renderTileStates(evt.Tiles, table)
-				case domain.EVENT_TYPE_GAME_OVER:
-					debugTxt.SetText(fmt.Sprintf("%s \n - Game Over", debugTxt.GetText(true)))
-					table.SetSelectable(false, false)
+					app.QueueUpdateDraw(func() {
+						debugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", evt.Type, evt.Score))
+
+						switch evt.Type {
+						case domain.EVENT_TYPE_GAME_UPDATED:
+
+							if len(evt.Group.Tiles) > 0 {
+								groupedTilesTxt := ""
+								for _, tile := range evt.Group.Tiles {
+									groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, evt.Group.Value)
+								}
+								debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
+							}
+
+							renderTileStates(evt.Tiles, table)
+						case domain.EVENT_TYPE_GAME_OVER:
+							debugTxt.SetText(fmt.Sprintf("%s \n - Game Over", debugTxt.GetText(true)))
+							table.SetSelectable(false, false)
+						}
+					})
 				}
-			}
+			}()
 
-			// Clear selection
 			firstSelectedX = -1
 			firstSelectedY = -1
 
 			secondSelectX = -1
 			secondSelectY = -1
 		}
+	}
+}
 
-	})
-
-	return table
-
+func highlightTiles(evt domain.GameEvent, table *tview.Table) {
+	for _, tileState := range evt.Group.Tiles {
+		cell := tview.NewTableCell(fmt.Sprintf(" \n %d \n ", evt.Group.Value))
+		cell.SetBackgroundColor(tcell.ColorRed)
+		table.SetCell(tileState.X, tileState.Y, cell)
+	}
 }
 
 func renderTileStates(tiles []domain.TileState, table *tview.Table) {
