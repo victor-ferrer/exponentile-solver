@@ -167,6 +167,9 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 			for y := 0; y < width; y++ {
 				cascadeGroup := b.findGroup(x, y)
 				if len(cascadeGroup.Tiles) > 0 {
+
+					b.processFoundGroup(cascadeGroup, CreateTile(x, y), CreateTile(x, y))
+
 					// Found a new group from the cascade
 					events = append(events, GameEvent{
 						Type:     EVENT_TYPE_GAME_UPDATED,
@@ -176,7 +179,6 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 						Group:    cascadeGroup,
 					})
 
-					b.processFoundGroup(cascadeGroup, CreateTile(x, y), CreateTile(x, y))
 					foundCascade = true
 					break
 				}
@@ -192,6 +194,7 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	}
 
 	return events
+
 }
 
 func (b *MatriXBoard) processFoundGroup(group Group, t2 Tile, t1 Tile) {
