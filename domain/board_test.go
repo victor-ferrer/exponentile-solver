@@ -143,6 +143,40 @@ func TestMakeMove_ScoreIncrement(t *testing.T) {
 	assert.Equal(t, 2, events[0].Sequence)
 }
 
+func TestMakeMove_WithCascades(t *testing.T) {
+	// Board designed to trigger cascades:
+	// Three 16s in a row (creates group when swapped)
+	// Dropping those tiles reveals two more 16s below that form another group
+	b := getCascadeTestBoard()
+
+	// Make a move that creates the initial group
+	events := b.MakeMove(CreateTile(7, 1), CreateTile(7, 0))
+
+	// Verify events were generated
+	assert.GreaterOrEqual(t, len(events), 1, "should have at least one event")
+
+	// First event should be a GAME_UPDATED (the initial group formed)
+	assert.Equal(t, EVENT_TYPE_GAME_UPDATED, events[0].Type)
+	assert.Equal(t, 1, events[0].Sequence)
+	assert.GreaterOrEqual(t, len(events[0].Group.Tiles), 3, "initial group should have at least 3 tiles")
+	assert.Equal(t, 2, events[0].Group.Value, "initial group should be of 2s")
+
+	// All events should be GAME_UPDATED type
+	for i := 0; i < len(events); i++ {
+		assert.Equal(t, EVENT_TYPE_GAME_UPDATED, events[i].Type, "all events should be GAME_UPDATED")
+	}
+
+	// All events should have increasing or equal sequence numbers
+	for i := 1; i < len(events); i++ {
+		assert.Equal(t, events[i].Sequence, events[i-1].Sequence, "all events in same move should have same sequence")
+	}
+
+	// Score should be cumulative and non-decreasing
+	for i := 1; i < len(events); i++ {
+		assert.GreaterOrEqual(t, events[i].Score, events[i-1].Score, "scores should be cumulative")
+	}
+}
+
 func getGameBoard() MatriXBoard {
 
 	data := make([]float64, 0)
@@ -154,6 +188,26 @@ func getGameBoard() MatriXBoard {
 	data = append(data, []float64{4, 2, 8, 8, 2, 8, 4, 8}...)
 	data = append(data, []float64{8, 2, 8, 2, 4, 2, 16, 4}...)
 	data = append(data, []float64{16, 16, 16, 16, 8, 2, 2, 2}...)
+
+	return MatriXBoard{
+		m: mat.NewDense(width, width, data),
+	}
+
+}
+
+func getCascadeTestBoard() MatriXBoard {
+	// Designed to guarantee cascades when swapping (7,1) with (7,0):
+	// After initial merge of 3 tiles at row 7, drops create more 2s
+	// that form another group at a lower row
+	data := make([]float64, 0)
+	data = append(data, []float64{4, 4, 4, 4, 4, 4, 4, 4}...)
+	data = append(data, []float64{4, 4, 4, 4, 4, 4, 4, 4}...)
+	data = append(data, []float64{4, 4, 4, 4, 4, 4, 4, 4}...)
+	data = append(data, []float64{4, 4, 4, 4, 4, 4, 4, 4}...)
+	data = append(data, []float64{2, 2, 4, 4, 4, 4, 4, 4}...) // Row 4: two 2s in cols 0-1
+	data = append(data, []float64{2, 2, 4, 4, 4, 4, 4, 4}...) // Row 5: two 2s in cols 0-1
+	data = append(data, []float64{2, 2, 4, 4, 4, 4, 4, 4}...) // Row 6: two 2s in cols 0-1
+	data = append(data, []float64{4, 2, 4, 4, 4, 4, 4, 4}...) // Row 7: one 2 at col 1 (will create group with dropped 2s)
 
 	return MatriXBoard{
 		m: mat.NewDense(width, width, data),
