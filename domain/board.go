@@ -147,6 +147,54 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 		}}
 	}
 
+	b.processFoundGroup(group, t2, t1)
+
+	events := []GameEvent{{
+		Type:     EVENT_TYPE_GAME_UPDATED,
+		Sequence: b.sequence,
+		Tiles:    b.getTileStates(),
+		Score:    b.score,
+		Group:    group,
+	}}
+
+	// Search for cascade events from bottom-right to top-left
+	// Process cascades until no more groups form
+	for {
+		foundCascade := false
+
+		// Scan from left to right, bottom to top
+		for x := width - 1; x >= 0; x-- {
+			for y := 0; y < width; y++ {
+				cascadeGroup := b.findGroup(x, y)
+				if len(cascadeGroup.Tiles) > 0 {
+					// Found a new group from the cascade
+					events = append(events, GameEvent{
+						Type:     EVENT_TYPE_GAME_UPDATED,
+						Sequence: b.sequence,
+						Tiles:    b.getTileStates(),
+						Score:    b.score,
+						Group:    cascadeGroup,
+					})
+
+					b.processFoundGroup(cascadeGroup, CreateTile(x, y), CreateTile(x, y))
+					foundCascade = true
+					break
+				}
+			}
+			if foundCascade {
+				break
+			}
+		}
+
+		if !foundCascade {
+			break
+		}
+	}
+
+	return events
+}
+
+func (b *MatriXBoard) processFoundGroup(group Group, t2 Tile, t1 Tile) {
 	// Calculate and increment score before modifying the board
 	scoreIncrease := group.GetScore()
 	b.score += scoreIncrease
@@ -184,12 +232,4 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 			b.dropTile(tile, getSeqNumber(rand.Intn(5)+1))
 		}
 	}
-
-	return []GameEvent{{
-		Type:     EVENT_TYPE_GAME_UPDATED,
-		Sequence: b.sequence,
-		Tiles:    b.getTileStates(),
-		Score:    b.score,
-		Group:    group,
-	}}
 }
