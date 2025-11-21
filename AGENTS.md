@@ -80,20 +80,38 @@ When a valid group is found after a swap:
 1. **Upgrade moved tile**: The tile that was moved (t2 position, or t1 if t2 is not in the group) is upgraded based on group size. The replacement value is calculated as: `value * 2^(group_size - 2)`. For 3 tiles, this is `value * 2`, for 4 tiles `value * 4`, for 5 tiles `value * 8`, etc.
 2. **Drop other tiles**: All other tiles in the group are dropped and replaced with random tiles (values 2, 4, 8, 16, or 32)
 3. **Calculate and increment score**: Score increments by the sum of all tile values in the group (`value * group_size`)
+4. **Cascade detection**: After dropping tiles, scan the board for new groups formed by the dropped tiles. Repeat steps 1-3 until no more groups form.
 
 **Example with 4-tile group:**
 - Group: [(7,0), (7,1), (7,2), (7,3)] all with value 16
 - Move tile from (7,3) to (7,2): creates a group
 - After merge: position (7,2) (the moved tile) becomes 64 (16 * 2^(4-2) = 16 * 4), others are dropped and replaced
 - Score increment: 16 + 16 + 16 + 16 = 64 points (total score is cumulative across all moves)
+- If dropped tiles form new groups, cascade continues with additional score increments
+
+### Cascade Detection
+
+After each group merge, the board is scanned for cascading groups:
+
+**Algorithm:**
+1. Scan from bottom-to-top (x: width-1 → 0), left-to-right (y: 0 → width-1)
+2. For each position, detect if a group exists
+3. If found: process the group, create a `GameEvent`, and restart scan
+4. Repeat until no more groups are found
+
+**Event Output:**
+- Each group (initial + cascades) generates a separate `GAME_UPDATED` event
+- All events from a single `MakeMove` have the same sequence number
+- Scores are cumulative across events within a move
 
 ## Current Development Focus
 
-1. **Board Operations** (ongoing):
+1. **Board Operations** (completed):
    - ✅ Swap tiles
    - ✅ Drop tiles that match
    - ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
    - ✅ Calculate scores of removed tiles
+   - ✅ Cascade detection and processing
 
 2. **UI Development** (ongoing):
    - ✅ Basic CLI interface
