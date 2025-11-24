@@ -25,7 +25,7 @@ The game is played on an 8x8 board by swapping contiguous tiles. When three or m
 
 ## Technology Stack
 
-- **Language**: Go 1.22
+- **Language**: Go 1.24
 - **CLI UI**: [TVIEW](https://github.com/rivo/tview) for rendering the terminal UI
 - **Matrix Operations**: [GoNum](https://github.com/gonum/matrix) matrix package
 

@@ -19,17 +19,111 @@ type MatriXBoard struct {
 }
 
 const width = 8
+const seqMax = 5
 
 func NewBoard() MatriXBoard {
 
 	data := make([]float64, width*width)
 	for i := range data {
-		data[i] = float64(getSeqNumber(rand.Intn(5) + 1))
+		data[i] = float64(getSeqNumber(rand.Intn(seqMax) + 1))
 	}
 	return MatriXBoard{
 		m: mat.NewDense(width, width, data),
 	}
+}
 
+func (b *MatriXBoard) Get(x, y int) int {
+	return int(b.m.At(x, y))
+}
+
+func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
+	b.sequence++
+
+	// Check if the swap is valid (contiguous tiles)
+	if !t1.isContinous(t2) {
+		return []GameEvent{b.noChangesEvent()}
+	}
+
+	// Swap the tiles
+	b.swap(t1, t2)
+
+	// Find if there is a group for the tile moved first (now at t2 position)
+	group := b.findGroup(t2.X, t2.Y)
+
+	// If there is no group, check the other tile
+	if len(group.Tiles) == 0 {
+		group = b.findGroup(t1.X, t1.Y)
+	}
+
+	// If no group was found, swap back and return no changes
+	if len(group.Tiles) == 0 {
+		b.swap(t1, t2)
+		return []GameEvent{b.noChangesEvent()}
+	}
+
+	b.processFoundGroup(group, t2, t1)
+	events := []GameEvent{b.updatedEvent(group)}
+
+	// Search for cascade events from bottom-right to top-left
+	// Process cascades until no more groups form
+	for {
+		foundCascade := false
+
+		// Scan from left to right, bottom to top
+		for x := width - 1; x >= 0; x-- {
+			for y := 0; y < width; y++ {
+				cascadeGroup := b.findGroup(x, y)
+				if len(cascadeGroup.Tiles) > 0 {
+					b.processFoundGroup(cascadeGroup, CreateTile(x, y), CreateTile(x, y))
+					events = append(events, b.updatedEvent(cascadeGroup))
+
+					foundCascade = true
+					break
+				}
+			}
+			if foundCascade {
+				break
+			}
+		}
+
+		if !foundCascade {
+			break
+		}
+	}
+
+	return events
+}
+
+func (b *MatriXBoard) updatedEvent(group Group) GameEvent {
+	return GameEvent{
+		Type:     EVENT_TYPE_GAME_UPDATED,
+		Sequence: b.sequence,
+		Tiles:    b.getTileStates(),
+		Score:    b.score,
+		Group:    group,
+	}
+}
+
+func (b *MatriXBoard) noChangesEvent() GameEvent {
+	return GameEvent{
+		Type:     EVENT_TYPE_NO_CHANGES,
+		Sequence: b.sequence,
+		Tiles:    b.getTileStates(),
+		Score:    b.score,
+	}
+}
+
+func (b *MatriXBoard) getTileStates() []TileState {
+	tiles := make([]TileState, 0, width*width)
+	for x := 0; x < width; x++ {
+		for y := 0; y < width; y++ {
+			tiles = append(tiles, TileState{
+				Position: CreateTile(x, y),
+				Value:    b.Get(x, y),
+			})
+		}
+	}
+	return tiles
 }
 
 func (b *MatriXBoard) swap(t1, t2 Tile) {
@@ -44,24 +138,6 @@ func (b *MatriXBoard) dropTile(target Tile, newValue int) {
 		b.swap(CreateTile(row, col), CreateTile(row-1, col))
 	}
 	b.m.Set(0, col, float64(newValue))
-
-}
-
-func (b *MatriXBoard) Get(x, y int) int {
-	return int(b.m.At(x, y))
-}
-
-func (b *MatriXBoard) getTileStates() []TileState {
-	tiles := make([]TileState, 0, width*width)
-	for x := 0; x < width; x++ {
-		for y := 0; y < width; y++ {
-			tiles = append(tiles, TileState{
-				Position: CreateTile(x, y),
-				Value:    b.Get(x, y),
-			})
-		}
-	}
-	return tiles
 }
 
 // Find Group: Finds all tiles with the same value in straight lines (row and/or column)
@@ -112,92 +188,12 @@ func (b *MatriXBoard) findGroup(x, y int) Group {
 	return result
 }
 
-func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
-	b.sequence++
-
-	// Check if the swap is valid (contiguous tiles)
-	if !t1.isContinous(t2) {
-		return []GameEvent{{
-			Type:     EVENT_TYPE_NO_CHANGES,
-			Sequence: b.sequence,
-			Tiles:    b.getTileStates(),
-			Score:    b.score,
-		}}
-	}
-
-	// Swap the tiles
-	b.swap(t1, t2)
-
-	// Find if there is a group for the tile moved first (now at t2 position)
-	group := b.findGroup(t2.X, t2.Y)
-
-	// If there is no group, check the other tile
-	if len(group.Tiles) == 0 {
-		group = b.findGroup(t1.X, t1.Y)
-	}
-
-	// If no group was found, swap back and return no changes
-	if len(group.Tiles) == 0 {
-		b.swap(t1, t2)
-		return []GameEvent{{
-			Type:     EVENT_TYPE_NO_CHANGES,
-			Sequence: b.sequence,
-			Tiles:    b.getTileStates(),
-			Score:    b.score,
-		}}
-	}
-
-	b.processFoundGroup(group, t2, t1)
-
-	events := []GameEvent{{
-		Type:     EVENT_TYPE_GAME_UPDATED,
-		Sequence: b.sequence,
-		Tiles:    b.getTileStates(),
-		Score:    b.score,
-		Group:    group,
-	}}
-
-	// Search for cascade events from bottom-right to top-left
-	// Process cascades until no more groups form
-	for {
-		foundCascade := false
-
-		// Scan from left to right, bottom to top
-		for x := width - 1; x >= 0; x-- {
-			for y := 0; y < width; y++ {
-				cascadeGroup := b.findGroup(x, y)
-				if len(cascadeGroup.Tiles) > 0 {
-
-					b.processFoundGroup(cascadeGroup, CreateTile(x, y), CreateTile(x, y))
-
-					// Found a new group from the cascade
-					events = append(events, GameEvent{
-						Type:     EVENT_TYPE_GAME_UPDATED,
-						Sequence: b.sequence,
-						Tiles:    b.getTileStates(),
-						Score:    b.score,
-						Group:    cascadeGroup,
-					})
-
-					foundCascade = true
-					break
-				}
-			}
-			if foundCascade {
-				break
-			}
-		}
-
-		if !foundCascade {
-			break
-		}
-	}
-
-	return events
-
-}
-
 func (b *MatriXBoard) processFoundGroup(group Group, t2 Tile, t1 Tile) {
+	// If group is empty, nothing to process
+	if len(group.Tiles) == 0 {
+		return
+	}
+
 	// Calculate and increment score before modifying the board
 	scoreIncrease := group.GetScore()
 	b.score += scoreIncrease
@@ -226,13 +222,21 @@ func (b *MatriXBoard) processFoundGroup(group Group, t2 Tile, t1 Tile) {
 		}
 	}
 
+	// If neither t2 nor t1 are in the group, fall back to the first tile in the group
+	if !keptTileFound && len(group.Tiles) > 0 {
+		keptTile = group.Tiles[0]
+		keptTileFound = true
+	}
+
 	// Upgrade the kept tile
-	b.m.Set(keptTile.X, keptTile.Y, float64(nextValue))
+	if keptTileFound {
+		b.m.Set(keptTile.X, keptTile.Y, float64(nextValue))
+	}
 
 	// Drop all other tiles and replace with random tiles
 	for _, tile := range group.Tiles {
 		if tile.X != keptTile.X || tile.Y != keptTile.Y {
-			b.dropTile(tile, getSeqNumber(rand.Intn(5)+1))
+			b.dropTile(tile, getSeqNumber(rand.Intn(seqMax)+1))
 		}
 	}
 }
