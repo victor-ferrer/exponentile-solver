@@ -22,6 +22,7 @@ type MatriXBoard struct {
 const width = 8
 const seqMax = 5
 
+// Constructor - placed first per request
 func NewBoard() MatriXBoard {
 	// Seed the global random generator for varied boards
 	rand.Seed(time.Now().UnixNano())
@@ -35,85 +36,12 @@ func NewBoard() MatriXBoard {
 	}
 }
 
-func (b *MatriXBoard) swap(t1, t2 Tile) {
-	aux := b.m.At(t1.X, t1.Y)
-	b.m.Set(t1.X, t1.Y, b.m.At(t2.X, t2.Y))
-	b.m.Set(t2.X, t2.Y, aux)
-}
-
-func (b *MatriXBoard) dropTile(target Tile, newValue int) {
-	col := target.Y
-	for row := target.X; row > 0; row-- {
-		b.swap(CreateTile(row, col), CreateTile(row-1, col))
-	}
-	b.m.Set(0, col, float64(newValue))
-}
-
+// Public getter
 func (b *MatriXBoard) Get(x, y int) int {
 	return int(b.m.At(x, y))
 }
 
-func (b *MatriXBoard) getTileStates() []TileState {
-	tiles := make([]TileState, 0, width*width)
-	for x := 0; x < width; x++ {
-		for y := 0; y < width; y++ {
-			tiles = append(tiles, TileState{
-				Position: CreateTile(x, y),
-				Value:    b.Get(x, y),
-			})
-		}
-	}
-	return tiles
-}
-
-// Find Group: Finds all tiles with the same value in straight lines (row and/or column)
-// Returns groups of 3 or more contiguous tiles
-// If both horizontal and vertical runs exist, returns both
-func (b *MatriXBoard) findGroup(x, y int) Group {
-	val := b.m.At(x, y)
-	result := Group{Value: int(val)}
-
-	// Find horizontal run extents
-	left, right := y, y
-	for left-1 >= 0 && b.m.At(x, left-1) == val {
-		left--
-	}
-	for right+1 < width && b.m.At(x, right+1) == val {
-		right++
-	}
-	hlen := right - left + 1
-
-	// Find vertical run extents
-	up, down := x, x
-	for up-1 >= 0 && b.m.At(up-1, y) == val {
-		up--
-	}
-	for down+1 < width && b.m.At(down+1, y) == val {
-		down++
-	}
-	vlen := down - up + 1
-
-	// Add horizontal run if >= 3
-	if hlen >= 3 {
-		for col := left; col <= right; col++ {
-			result.Tiles = append(result.Tiles, CreateTile(x, col))
-		}
-	}
-
-	// Add vertical run if >= 3
-	if vlen >= 3 {
-		for row := up; row <= down; row++ {
-			tile := CreateTile(row, y)
-			// Avoid duplicating the center tile if both runs exist
-			if hlen < 3 || row != x {
-				result.Tiles = append(result.Tiles, tile)
-			}
-		}
-	}
-
-	return result
-}
-
+// Public game action - MakeMove
 func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	b.sequence++
 
@@ -130,7 +58,7 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 
 	// If there is no group, check the other tile
 	if len(group.Tiles) == 0 {
-		hroup = b.findGroup(t1.X, t1.Y)
+		group = b.findGroup(t1.X, t1.Y)
 	}
 
 	// If no group was found, swap back and return no changes
@@ -195,6 +123,81 @@ func (b *MatriXBoard) noChangesEvent() GameEvent {
 		Tiles:    b.getTileStates(),
 		Score:    b.score,
 	}
+}
+
+func (b *MatriXBoard) getTileStates() []TileState {
+	tiles := make([]TileState, 0, width*width)
+	for x := 0; x < width; x++ {
+		for y := 0; y < width; y++ {
+			tiles = append(tiles, TileState{
+				Position: CreateTile(x, y),
+				Value:    b.Get(x, y),
+			})
+		}
+	}
+	return tiles
+}
+
+func (b *MatriXBoard) swap(t1, t2 Tile) {
+	aux := b.m.At(t1.X, t1.Y)
+	b.m.Set(t1.X, t1.Y, b.m.At(t2.X, t2.Y))
+	b.m.Set(t2.X, t2.Y, aux)
+}
+
+func (b *MatriXBoard) dropTile(target Tile, newValue int) {
+	col := target.Y
+	for row := target.X; row > 0; row-- {
+		b.swap(CreateTile(row, col), CreateTile(row-1, col))
+	}
+	b.m.Set(0, col, float64(newValue))
+}
+
+// Find Group: Finds all tiles with the same value in straight lines (row and/or column)
+// Returns groups of 3 or more contiguous tiles
+// If both horizontal and vertical runs exist, returns both
+func (b *MatriXBoard) findGroup(x, y int) Group {
+	val := b.m.At(x, y)
+	result := Group{Value: int(val)}
+
+	// Find horizontal run extents
+	left, right := y, y
+	for left-1 >= 0 && b.m.At(x, left-1) == val {
+		left--
+	}
+	for right+1 < width && b.m.At(x, right+1) == val {
+		right++
+	}
+	hlen := right - left + 1
+
+	// Find vertical run extents
+	up, down := x, x
+	for up-1 >= 0 && b.m.At(up-1, y) == val {
+		up--
+	}
+	for down+1 < width && b.m.At(down+1, y) == val {
+		down++
+	}
+	vlen := down - up + 1
+
+	// Add horizontal run if >= 3
+	if hlen >= 3 {
+		for col := left; col <= right; col++ {
+			result.Tiles = append(result.Tiles, CreateTile(x, col))
+		}
+	}
+
+	// Add vertical run if >= 3
+	if vlen >= 3 {
+		for row := up; row <= down; row++ {
+			tile := CreateTile(row, y)
+			// Avoid duplicating the center tile if both runs exist
+			if hlen < 3 || row != x {
+				result.Tiles = append(result.Tiles, tile)
+			}
+		}
+	}
+
+	return result
 }
 
 func (b *MatriXBoard) processFoundGroup(group Group, t2 Tile, t1 Tile) {
