@@ -2,7 +2,6 @@ package domain
 
 import (
 	"math/rand"
-	"time"
 
 	"gonum.org/v1/gonum/mat"
 )
@@ -22,10 +21,7 @@ type MatriXBoard struct {
 const width = 8
 const seqMax = 5
 
-// Constructor - placed first per request
 func NewBoard() MatriXBoard {
-	// Seed the global random generator for varied boards
-	rand.Seed(time.Now().UnixNano())
 
 	data := make([]float64, width*width)
 	for i := range data {
@@ -36,12 +32,10 @@ func NewBoard() MatriXBoard {
 	}
 }
 
-// Public getter
 func (b *MatriXBoard) Get(x, y int) int {
 	return int(b.m.At(x, y))
 }
 
-// Public game action - MakeMove
 func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	b.sequence++
 
@@ -68,14 +62,7 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	}
 
 	b.processFoundGroup(group, t2, t1)
-
-	events := []GameEvent{{
-		Type:     EVENT_TYPE_GAME_UPDATED,
-		Sequence: b.sequence,
-		Tiles:    b.getTileStates(),
-		Score:    b.score,
-		Group:    group,
-	}}
+	events := []GameEvent{b.updatedEvent(group)}
 
 	// Search for cascade events from bottom-right to top-left
 	// Process cascades until no more groups form
@@ -88,15 +75,7 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 				cascadeGroup := b.findGroup(x, y)
 				if len(cascadeGroup.Tiles) > 0 {
 					b.processFoundGroup(cascadeGroup, CreateTile(x, y), CreateTile(x, y))
-
-					// Found a new group from the cascade
-					events = append(events, GameEvent{
-						Type:     EVENT_TYPE_GAME_UPDATED,
-						Sequence: b.sequence,
-						Tiles:    b.getTileStates(),
-						Score:    b.score,
-						Group:    cascadeGroup,
-					})
+					events = append(events, b.updatedEvent(cascadeGroup))
 
 					foundCascade = true
 					break
@@ -115,7 +94,16 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	return events
 }
 
-// noChangesEvent constructs the standardized NO_CHANGES event for the current board state
+func (b *MatriXBoard) updatedEvent(group Group) GameEvent {
+	return GameEvent{
+		Type:     EVENT_TYPE_GAME_UPDATED,
+		Sequence: b.sequence,
+		Tiles:    b.getTileStates(),
+		Score:    b.score,
+		Group:    group,
+	}
+}
+
 func (b *MatriXBoard) noChangesEvent() GameEvent {
 	return GameEvent{
 		Type:     EVENT_TYPE_NO_CHANGES,

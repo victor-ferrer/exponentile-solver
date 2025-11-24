@@ -139,7 +139,7 @@ func getTileColor(value int) tcell.Color {
 	case 4:
 		return tcell.ColorBlue
 	case 8:
-		return tcell.ColorYellow
+		return tcell.ColorGold
 	case 16:
 		return tcell.ColorOrange
 	case 32:

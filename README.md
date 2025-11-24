@@ -2,6 +2,8 @@
 
 Golang engine that solves the game Exponentile: https://www.bellika.dk/exponentile
 
+## Game Rules
+
 The game is played on an 8x8 board by swapping contiguous tiles. When three or more tiles with the same value line up, they combine into a single tile bearing the next power of two (2, 4, 8, 16, ...).
 
 ![Current Board status](./docs/ui_board.PNG)
@@ -59,7 +61,7 @@ The interesting part, rather than just copying the game, would be to have severa
 
 ## Technology Stack
 
-- **Language:** Go 1.22
+- **Language:** Go 1.24
 - **CLI UI:** [TVIEW](https://github.com/rivo/tview) for rendering the terminal UI
 - **Matrix Operations:** [GoNum](https://github.com/gonum/matrix) matrix package
 
