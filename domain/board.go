@@ -2,6 +2,7 @@ package domain
 
 import (
 	"math/rand"
+	"time"
 
 	"gonum.org/v1/gonum/mat"
 )
@@ -19,17 +20,19 @@ type MatriXBoard struct {
 }
 
 const width = 8
+const seqMax = 5
 
 func NewBoard() MatriXBoard {
+	// Seed the global random generator for varied boards
+	rand.Seed(time.Now().UnixNano())
 
 	data := make([]float64, width*width)
 	for i := range data {
-		data[i] = float64(getSeqNumber(rand.Intn(5) + 1))
+		data[i] = float64(getSeqNumber(rand.Intn(seqMax) + 1))
 	}
 	return MatriXBoard{
 		m: mat.NewDense(width, width, data),
 	}
-
 }
 
 func (b *MatriXBoard) swap(t1, t2 Tile) {
@@ -44,7 +47,6 @@ func (b *MatriXBoard) dropTile(target Tile, newValue int) {
 		b.swap(CreateTile(row, col), CreateTile(row-1, col))
 	}
 	b.m.Set(0, col, float64(newValue))
-
 }
 
 func (b *MatriXBoard) Get(x, y int) int {
@@ -117,12 +119,7 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 
 	// Check if the swap is valid (contiguous tiles)
 	if !t1.isContinous(t2) {
-		return []GameEvent{{
-			Type:     EVENT_TYPE_NO_CHANGES,
-			Sequence: b.sequence,
-			Tiles:    b.getTileStates(),
-			Score:    b.score,
-		}}
+		return []GameEvent{b.noChangesEvent()}
 	}
 
 	// Swap the tiles
@@ -133,18 +130,13 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 
 	// If there is no group, check the other tile
 	if len(group.Tiles) == 0 {
-		group = b.findGroup(t1.X, t1.Y)
+		hroup = b.findGroup(t1.X, t1.Y)
 	}
 
 	// If no group was found, swap back and return no changes
 	if len(group.Tiles) == 0 {
 		b.swap(t1, t2)
-		return []GameEvent{{
-			Type:     EVENT_TYPE_NO_CHANGES,
-			Sequence: b.sequence,
-			Tiles:    b.getTileStates(),
-			Score:    b.score,
-		}}
+		return []GameEvent{b.noChangesEvent()}
 	}
 
 	b.processFoundGroup(group, t2, t1)
@@ -167,7 +159,6 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 			for y := 0; y < width; y++ {
 				cascadeGroup := b.findGroup(x, y)
 				if len(cascadeGroup.Tiles) > 0 {
-
 					b.processFoundGroup(cascadeGroup, CreateTile(x, y), CreateTile(x, y))
 
 					// Found a new group from the cascade
@@ -194,10 +185,24 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	}
 
 	return events
+}
 
+// noChangesEvent constructs the standardized NO_CHANGES event for the current board state
+func (b *MatriXBoard) noChangesEvent() GameEvent {
+	return GameEvent{
+		Type:     EVENT_TYPE_NO_CHANGES,
+		Sequence: b.sequence,
+		Tiles:    b.getTileStates(),
+		Score:    b.score,
+	}
 }
 
 func (b *MatriXBoard) processFoundGroup(group Group, t2 Tile, t1 Tile) {
+	// If group is empty, nothing to process
+	if len(group.Tiles) == 0 {
+		return
+	}
+
 	// Calculate and increment score before modifying the board
 	scoreIncrease := group.GetScore()
 	b.score += scoreIncrease
@@ -226,13 +231,21 @@ func (b *MatriXBoard) processFoundGroup(group Group, t2 Tile, t1 Tile) {
 		}
 	}
 
+	// If neither t2 nor t1 are in the group, fall back to the first tile in the group
+	if !keptTileFound && len(group.Tiles) > 0 {
+		keptTile = group.Tiles[0]
+		keptTileFound = true
+	}
+
 	// Upgrade the kept tile
-	b.m.Set(keptTile.X, keptTile.Y, float64(nextValue))
+	if keptTileFound {
+		b.m.Set(keptTile.X, keptTile.Y, float64(nextValue))
+	}
 
 	// Drop all other tiles and replace with random tiles
 	for _, tile := range group.Tiles {
 		if tile.X != keptTile.X || tile.Y != keptTile.Y {
-			b.dropTile(tile, getSeqNumber(rand.Intn(5)+1))
+			b.dropTile(tile, getSeqNumber(rand.Intn(seqMax)+1))
 		}
 	}
 }
