@@ -20,20 +20,8 @@ func NewUIBoard(board domain.Board, app *tview.Application) (*tview.Table, *tvie
 	debugTxt.SetText("Debug:")
 
 	table := tview.NewTable().SetBorders(false).SetSeparator('│')
+	renderTileStates(board.GetTileState(), table)
 
-	for r := range ROWS {
-		for c := range COLS {
-			color := tcell.ColorWhite
-			value := board.Get(r, c)
-			table.SetCell(r, c,
-
-				tview.NewTableCell(fmt.Sprintf(" \n %d \n ", value)).
-					SetTextColor(color).
-					SetBackgroundColor(getTileColor(value)).
-					SetAlign(tview.AlignCenter))
-
-		}
-	}
 	selectFunc := createSelectFunc(board, app, table, debugTxt)
 	doneFunc := createDoneFunc(app, table)
 	table.Select(0, 0).SetFixed(1, 1).SetDoneFunc(doneFunc).SetSelectedFunc(selectFunc)

@@ -32,10 +32,6 @@ func NewBoard() MatriXBoard {
 	}
 }
 
-func (b *MatriXBoard) Get(x, y int) int {
-	return int(b.m.At(x, y))
-}
-
 func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	b.sequence++
 
@@ -94,11 +90,15 @@ func (b *MatriXBoard) MakeMove(t1, t2 Tile) []GameEvent {
 	return events
 }
 
+func (b *MatriXBoard) get(x, y int) int {
+	return int(b.m.At(x, y))
+}
+
 func (b *MatriXBoard) updatedEvent(group Group) GameEvent {
 	return GameEvent{
 		Type:     EVENT_TYPE_GAME_UPDATED,
 		Sequence: b.sequence,
-		Tiles:    b.getTileStates(),
+		Tiles:    b.GetTileState(),
 		Score:    b.score,
 		Group:    group,
 	}
@@ -108,18 +108,18 @@ func (b *MatriXBoard) noChangesEvent() GameEvent {
 	return GameEvent{
 		Type:     EVENT_TYPE_NO_CHANGES,
 		Sequence: b.sequence,
-		Tiles:    b.getTileStates(),
+		Tiles:    b.GetTileState(),
 		Score:    b.score,
 	}
 }
 
-func (b *MatriXBoard) getTileStates() []TileState {
+func (b *MatriXBoard) GetTileState() []TileState {
 	tiles := make([]TileState, 0, width*width)
 	for x := 0; x < width; x++ {
 		for y := 0; y < width; y++ {
 			tiles = append(tiles, TileState{
 				Position: CreateTile(x, y),
-				Value:    b.Get(x, y),
+				Value:    b.get(x, y),
 			})
 		}
 	}
