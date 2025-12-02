@@ -21,14 +21,38 @@ type MatriXBoard struct {
 const width = 8
 const seqMax = 5
 
-func NewBoard() MatriXBoard {
-
-	data := make([]float64, width*width)
-	for i := range data {
-		data[i] = float64(getSeqNumber(rand.Intn(seqMax) + 1))
+func NewBoard(dataProviders ...func() []float64) MatriXBoard {
+	var dataProvider func() []float64
+	if len(dataProviders) > 0 {
+		// Multiple providers are ignored
+		dataProvider = dataProviders[0]
+	} else {
+		dataProvider = WithRandomData()
 	}
+	data := dataProvider()
 	return MatriXBoard{
 		m: mat.NewDense(width, width, data),
+	}
+}
+
+func WithRandomData() func() []float64 {
+	return func() []float64 {
+		data := make([]float64, width*width)
+		for i := range data {
+			data[i] = float64(getSeqNumber(rand.Intn(seqMax) + 1))
+		}
+		return data
+	}
+}
+
+func WithTileStateData(tileStates []TileState) func() []float64 {
+	return func() []float64 {
+		data := make([]float64, width*width)
+		for _, ts := range tileStates {
+			index := ts.Position.X*width + ts.Position.Y
+			data[index] = float64(ts.Value)
+		}
+		return data
 	}
 }
 

@@ -127,6 +127,45 @@ func TestCalculateGroupScore(t *testing.T) {
 	assert.Equal(t, 0, score)
 }
 
+func TestWithTileStateData(t *testing.T) {
+	// Create tile states for a simple 8x8 board
+	tileStates := []TileState{
+		{Position: CreateTile(0, 0), Value: 2},
+		{Position: CreateTile(0, 1), Value: 4},
+		{Position: CreateTile(7, 6), Value: 8},
+		{Position: CreateTile(7, 7), Value: 16},
+	}
+
+	dataFunc := WithTileStateData(tileStates)
+	data := dataFunc()
+
+	// Verify the data array is correctly populated
+	assert.Equal(t, float64(2), data[0*width+0])    // (0,0) = 2
+	assert.Equal(t, float64(4), data[0*width+1])    // (0,1) = 4
+	assert.Equal(t, float64(8), data[7*width+6])    // (7,6) = 8
+	assert.Equal(t, float64(16), data[7*width+7])   // (7,7) = 16
+	assert.Equal(t, float64(0), data[1*width+1])    // (1,1) not set, should be 0
+}
+
+func TestNewBoardWithTileStateData(t *testing.T) {
+	// Create a board using tile state data
+	tileStates := []TileState{
+		{Position: CreateTile(0, 0), Value: 16},
+		{Position: CreateTile(0, 1), Value: 16},
+		{Position: CreateTile(0, 2), Value: 16},
+		{Position: CreateTile(0, 3), Value: 8},
+	}
+
+	board := NewBoard(WithTileStateData(tileStates))
+
+	// Verify the board was created with the correct values
+	assert.Equal(t, 16, board.get(0, 0))
+	assert.Equal(t, 16, board.get(0, 1))
+	assert.Equal(t, 16, board.get(0, 2))
+	assert.Equal(t, 8, board.get(0, 3))
+	assert.Equal(t, 0, board.get(0, 4))
+}
+
 func TestMakeMove_ScoreIncrement(t *testing.T) {
 	b := getGameBoard()
 

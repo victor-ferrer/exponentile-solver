@@ -107,15 +107,17 @@ After each group merge, the board is scanned for cascading groups:
 ## Current Development Focus
 
 1. **Board Operations** (completed):
-   - ✅ Swap tiles
-   - ✅ Drop tiles that match
-   - ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
-   - ✅ Calculate scores of removed tiles
-   - ✅ Cascade detection and processing
+- ✅ Swap tiles
+- ✅ Drop tiles that match
+- ✅ Get groups of tiles (supports 3+ tiles, horizontal and vertical runs)
+- ✅ Calculate scores of removed tiles
+- ✅ Reevaluate the board once a group is gone (detect cascading matches)
+- ✅ Bigger groups return higher new tiles   
+- ✅ Cascade detection and processing
 
 2. **UI Development** (ongoing):
    - ✅ Basic CLI interface
-   - ⏳ Map basic board operations to UI
+   - ✅ Map basic board operations to UI
 
 3. **Infrastructure**:
    - ✅ Tests with GitHub Actions
