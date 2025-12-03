@@ -41,6 +41,7 @@ go run main.go
 - ✅ Calculate scores of removed tiles
 - ✅ Reevaluate the board once a group is gone (detect cascading matches)
 - ✅ Bigger groups return higher new tiles
+- ✅ Cascade detection and processing
 
 **Infrastructure:**
 - ✅ Tests with GitHub Actions
