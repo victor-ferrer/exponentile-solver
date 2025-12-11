@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 	"victor-ferrer/solver/domain"
+	bruteforce "victor-ferrer/solver/solvers/brute_force"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -23,8 +24,11 @@ func NewUIBoard(board domain.Board, app *tview.Application) (*tview.Table, *tvie
 	renderTileStates(board.GetTileState(), table)
 
 	selectFunc := createSelectFunc(board, app, table, debugTxt)
+
 	doneFunc := createDoneFunc(app, table)
 	table.Select(0, 0).SetFixed(1, 1).SetDoneFunc(doneFunc).SetSelectedFunc(selectFunc)
+
+	createSolver(board, table, app)
 
 	return table, debugTxt
 
@@ -39,6 +43,26 @@ func createDoneFunc(app *tview.Application, table *tview.Table) func(key tcell.K
 			table.SetSelectable(true, true)
 		}
 	}
+}
+
+func createSolver(board domain.Board, table *tview.Table, app *tview.Application) {
+	eventsChan := bruteforce.Solve(board)
+	go func() {
+		for event := range eventsChan {
+
+			if len(event.Group.Tiles) > 0 {
+				app.QueueUpdateDraw(func() {
+					highlightTiles(event, table)
+				})
+			}
+			time.Sleep(1 * time.Second)
+			app.QueueUpdateDraw(func() {
+				renderTileStates(event.Tiles, table)
+
+			})
+			time.Sleep(1 * time.Second)
+		}
+	}()
 }
 
 func createSelectFunc(
