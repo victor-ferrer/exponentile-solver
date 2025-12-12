@@ -39,28 +39,29 @@ func NewUIBoard(board domain.Board, app *tview.Application, auto bool) UIBoard {
 	if auto {
 		uiBoard.createSolver(board)
 	} else {
-		selectFunc := uiBoard.createSelectFunc(board)
-		table.Select(0, 0).SetFixed(1, 1).SetSelectedFunc(selectFunc)
+		uiBoard.createSelectFunc(board)
+		table.Select(0, 0).SetFixed(1, 1)
 	}
 
-	doneFunc := createDoneFunc(app, table)
-	table.SetDoneFunc(doneFunc)
+	uiBoard.createDoneFunc()
 
 	return uiBoard
 
 }
 
-func createDoneFunc(app *tview.Application, table *tview.Table) func(key tcell.Key) {
-	return func(key tcell.Key) {
+// Controls when the app ends
+func (uiBoard *UIBoard) createDoneFunc() {
+	uiBoard.Table.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEscape {
-			app.Stop()
+			uiBoard.app.Stop()
 		}
 		if key == tcell.KeyEnter {
-			table.SetSelectable(true, true)
+			uiBoard.Table.SetSelectable(true, true)
 		}
-	}
+	})
 }
 
+// Creates a solver for the board and feeds its events to the ui table
 func (uiBoard *UIBoard) createSolver(board domain.Board) {
 	eventsChan := bruteforce.Solve(board)
 	go func() {
@@ -82,15 +83,13 @@ func (uiBoard *UIBoard) createSolver(board domain.Board) {
 	}()
 }
 
-func (uiBoard *UIBoard) createSelectFunc(
-	board domain.Board,
-) func(row int, column int) {
+func (uiBoard *UIBoard) createSelectFunc(board domain.Board) {
 	firstSelectedX := -1
 	firstSelectedY := -1
 	secondSelectX := -1
 	secondSelectY := -1
 
-	return func(row int, column int) {
+	selectFunc := func(row int, column int) {
 		if firstSelectedX < 0 {
 			firstSelectedX = row
 			firstSelectedY = column
@@ -140,6 +139,7 @@ func (uiBoard *UIBoard) createSelectFunc(
 			secondSelectY = -1
 		}
 	}
+	uiBoard.Table.SetSelectedFunc(selectFunc)
 }
 
 func highlightTiles(evt domain.GameEvent, table *tview.Table) {

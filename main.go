@@ -9,7 +9,6 @@ import (
 
 func main() {
 
-	// Model
 	board := domain.NewBoard()
 
 	app := tview.NewApplication()
@@ -17,7 +16,7 @@ func main() {
 	flex := tview.NewFlex()
 	flex.SetDirection(tview.FlexColumn)
 
-	uiBoard := ui.NewUIBoard(&board, app, true)
+	uiBoard := ui.NewUIBoard(&board, app, false)
 	flex.AddItem(uiBoard.Table, 57, 4, false)
 	flex.AddItem(uiBoard.DebugTxt, 0, 1, false)
 
