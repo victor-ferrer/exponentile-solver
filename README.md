@@ -25,10 +25,17 @@ go run main.go
 ```
 
 **Gameplay:**
-1. Once the board appears, hit Enter.
-2. Select two tiles to swap them.
-3. Valid swaps that create groups of 3+ matching tiles will merge them.
-4. Hit ESC to exit the game.
+1. Select a game mode from the menu:
+   - **Manual Game**: Play the game yourself by selecting two tiles to swap
+   - **Automatic Mode**: Watch the solver play automatically
+2. For Manual Game:
+   - Hit Enter to start selecting tiles
+   - Select two tiles to swap them
+   - Valid swaps that create groups of 3+ matching tiles will merge them
+   - Hit ESC to exit the game
+3. For Automatic Mode:
+   - Watch the solver automatically find and execute moves
+   - Hit ESC to exit
 
 ## Project Status
 
