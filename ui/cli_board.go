@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 	"victor-ferrer/solver/domain"
+	bruteforce "victor-ferrer/solver/solvers/brute_force"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -14,45 +15,81 @@ const (
 	ROWS = 8
 )
 
-func NewUIBoard(board domain.Board, app *tview.Application) (*tview.Table, *tview.TextView) {
+type UIBoard struct {
+	Table    *tview.Table
+	DebugTxt *tview.TextView
+	app      *tview.Application
+}
+
+func NewUIBoard(board domain.Board, app *tview.Application, auto bool) UIBoard {
 
 	debugTxt := tview.NewTextView()
 	debugTxt.SetText("Debug:")
 
 	table := tview.NewTable().SetBorders(false).SetSeparator('│')
+
+	uiBoard := UIBoard{
+		Table:    table,
+		DebugTxt: debugTxt,
+		app:      app,
+	}
+
 	renderTileStates(board.GetTileState(), table)
 
-	selectFunc := createSelectFunc(board, app, table, debugTxt)
-	doneFunc := createDoneFunc(app, table)
-	table.Select(0, 0).SetFixed(1, 1).SetDoneFunc(doneFunc).SetSelectedFunc(selectFunc)
+	if auto {
+		uiBoard.createSolver(board)
+	} else {
+		uiBoard.createSelectFunc(board)
+		table.Select(0, 0).SetFixed(1, 1)
+	}
 
-	return table, debugTxt
+	uiBoard.createDoneFunc()
+
+	return uiBoard
 
 }
 
-func createDoneFunc(app *tview.Application, table *tview.Table) func(key tcell.Key) {
-	return func(key tcell.Key) {
+// Controls when the app ends
+func (uiBoard *UIBoard) createDoneFunc() {
+	uiBoard.Table.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEscape {
-			app.Stop()
+			uiBoard.app.Stop()
 		}
 		if key == tcell.KeyEnter {
-			table.SetSelectable(true, true)
+			uiBoard.Table.SetSelectable(true, true)
 		}
-	}
+	})
 }
 
-func createSelectFunc(
-	board domain.Board,
-	app *tview.Application,
-	table *tview.Table,
-	debugTxt *tview.TextView,
-) func(row int, column int) {
+// Creates a solver for the board and feeds its events to the ui table
+func (uiBoard *UIBoard) createSolver(board domain.Board) {
+	eventsChan := bruteforce.Solve(board)
+	go func() {
+		for event := range eventsChan {
+
+			if len(event.Group.Tiles) > 0 {
+				uiBoard.app.QueueUpdateDraw(func() {
+					highlightTiles(event, uiBoard.Table)
+				})
+			}
+			time.Sleep(1 * time.Second)
+			uiBoard.app.QueueUpdateDraw(func() {
+				uiBoard.DebugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", event.Type, event.Score))
+				renderTileStates(event.Tiles, uiBoard.Table)
+
+			})
+			time.Sleep(1 * time.Second)
+		}
+	}()
+}
+
+func (uiBoard *UIBoard) createSelectFunc(board domain.Board) {
 	firstSelectedX := -1
 	firstSelectedY := -1
 	secondSelectX := -1
 	secondSelectY := -1
 
-	return func(row int, column int) {
+	selectFunc := func(row int, column int) {
 		if firstSelectedX < 0 {
 			firstSelectedX = row
 			firstSelectedY = column
@@ -66,14 +103,14 @@ func createSelectFunc(
 				for _, evt := range events {
 
 					if len(evt.Group.Tiles) > 0 {
-						app.QueueUpdateDraw(func() {
-							highlightTiles(evt, table)
+						uiBoard.app.QueueUpdateDraw(func() {
+							highlightTiles(evt, uiBoard.Table)
 						})
 					}
 					time.Sleep(1 * time.Second)
 
-					app.QueueUpdateDraw(func() {
-						debugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", evt.Type, evt.Score))
+					uiBoard.app.QueueUpdateDraw(func() {
+						uiBoard.DebugTxt.SetText(fmt.Sprintf("Debug: \n - Event type: %s \n - Score: %d", evt.Type, evt.Score))
 
 						switch evt.Type {
 						case domain.EVENT_TYPE_GAME_UPDATED:
@@ -83,13 +120,13 @@ func createSelectFunc(
 								for _, tile := range evt.Group.Tiles {
 									groupedTilesTxt += fmt.Sprintf("(%d,%d)(%d) ", tile.X, tile.Y, evt.Group.Value)
 								}
-								debugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", debugTxt.GetText(true), groupedTilesTxt))
+								uiBoard.DebugTxt.SetText(fmt.Sprintf("%s \n - Grouped tiles: %s", uiBoard.DebugTxt.GetText(true), groupedTilesTxt))
 							}
 
-							renderTileStates(evt.Tiles, table)
+							renderTileStates(evt.Tiles, uiBoard.Table)
 						case domain.EVENT_TYPE_GAME_OVER:
-							debugTxt.SetText(fmt.Sprintf("%s \n - Game Over", debugTxt.GetText(true)))
-							table.SetSelectable(false, false)
+							uiBoard.DebugTxt.SetText(fmt.Sprintf("%s \n - Game Over", uiBoard.DebugTxt.GetText(true)))
+							uiBoard.Table.SetSelectable(false, false)
 						}
 					})
 				}
@@ -102,6 +139,7 @@ func createSelectFunc(
 			secondSelectY = -1
 		}
 	}
+	uiBoard.Table.SetSelectedFunc(selectFunc)
 }
 
 func highlightTiles(evt domain.GameEvent, table *tview.Table) {

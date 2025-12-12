@@ -115,9 +115,12 @@ After each group merge, the board is scanned for cascading groups:
 - ✅ Bigger groups return higher new tiles   
 - ✅ Cascade detection and processing
 
-2. **UI Development** (ongoing):
-   - ✅ Basic CLI interface
+2. **UI Development** (completed):
+   - ✅ Basic CLI interface using TVIEW
    - ✅ Map basic board operations to UI
+   - ✅ Game mode menu (Manual vs Automatic)
+   - ✅ Manual mode (player input and tile selection)
+   - ✅ Automatic mode (solver visualization)
 
 3. **Infrastructure**:
    - ✅ Tests with GitHub Actions
