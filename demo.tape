@@ -9,8 +9,8 @@ Sleep 1s
 Enter
 Sleep 2s
 
-# Select Automatic mode (adjust key if needed)
-Type "a"
+# Select Automatic mode 
+Down
 Sleep 2s
 Enter
 Sleep 13s
