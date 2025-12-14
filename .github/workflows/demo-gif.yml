@@ -40,7 +40,9 @@ jobs:
         run: |
           curl -sL https://github.com/charmbracelet/vhs/releases/download/v0.10.0/vhs_0.10.0_Linux_x86_64.tar.gz -o vhs.tar.gz
           tar -xzf vhs.tar.gz
-          sudo mv vhs /usr/local/bin/
+          find . -name "vhs" -type f -executable
+          VHS_BIN=$(find . -name "vhs" -type f -executable | head -1)
+          sudo mv "$VHS_BIN" /usr/local/bin/
           rm vhs.tar.gz
 
       - name: Generate demo GIF
