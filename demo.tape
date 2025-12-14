@@ -1,9 +1,8 @@
 # VHS demo script for Exponentile Solver - Automatic Mode
 
 Output demo.gif
-Set Shell "bash"
+Set Shell bash
 Set Framerate 12
-Set Timeout 10
 
 Type "./solver"
 Enter
