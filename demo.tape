@@ -5,13 +5,15 @@ Set Shell bash
 Set Framerate 12
 
 Type "./solver"
-Enter
 Sleep 1s
+Enter
+Sleep 2s
 
 # Select Automatic mode (adjust key if needed)
 Type "a"
+Sleep 2s
 Enter
-Sleep 8s
+Sleep 13s
 
 # Exit
 Type "q"
