@@ -38,7 +38,10 @@ jobs:
 
       - name: Install VHS
         run: |
-          curl -sS https://webi.sh/vhs | sh
+          curl -sL https://github.com/charmbracelet/vhs/releases/download/v0.10.0/vhs_0.10.0_Linux_x86_64.tar.gz -o vhs.tar.gz
+          tar -xzf vhs.tar.gz
+          sudo mv vhs /usr/local/bin/
+          rm vhs.tar.gz
 
       - name: Generate demo GIF
         run: vhs < demo.tape
