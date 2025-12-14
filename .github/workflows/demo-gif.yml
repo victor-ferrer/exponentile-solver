@@ -1,0 +1,50 @@
+name: Generate Demo GIF
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: Build solver
+        run: go build -o solver
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: solver-binary
+          path: solver
+
+  generate-gif:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: solver-binary
+
+      - name: Make binary executable
+        run: chmod +x solver
+
+      - name: Install VHS
+        run: |
+          curl -sS https://webi.sh/vhs | sh
+
+      - name: Generate demo GIF
+        run: vhs < demo.tape
+
+      - name: Commit GIF
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update demo.gif"
+          file_pattern: demo.gif
