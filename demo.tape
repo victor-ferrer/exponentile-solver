@@ -3,6 +3,7 @@
 Output demo.gif
 Set Shell bash
 Set Framerate 12
+Set FontSize 10
 
 Type "./solver"
 Sleep 1s
