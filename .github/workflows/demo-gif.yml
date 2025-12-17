@@ -48,7 +48,7 @@ jobs:
         run: brew install vhs
 
       - name: Generate demo GIF
-        run: vhs < demo.tape
+        run: vhs < ./docs/demo.tape
 
       - name: Commit GIF
         uses: stefanzweifel/git-auto-commit-action@v5
