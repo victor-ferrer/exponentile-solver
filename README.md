@@ -6,7 +6,7 @@ Golang engine that solves the game Exponentile: https://www.bellika.dk/exponenti
 
 The game is played on an 8x8 board by swapping contiguous tiles. When three or more tiles with the same value line up, they combine into a single tile bearing the next power of two (2, 4, 8, 16, ...).
 
-![Current Board status](./docs/ui_board.PNG)
+![Current Board status](./docs/demo.gif)
 
 The game becomes harder as more numbers appear on the board, making it increasingly difficult to line up 3 or more tiles with the same value.
 
