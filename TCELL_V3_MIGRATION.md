@@ -131,22 +131,29 @@ exponentile-solver
 
 ## Recommended Migration Path
 
-1. **Verify tview support first** (BLOCKING)
-   - Check if tview has released a version supporting tcell v3
-   - If not, wait for tview update OR consider updating tview separately
+### ⏸️ BLOCKED - Waiting for tview v3 Support
 
-2. **Update dependencies**:
+As of **December 2025**:
+- **tcell v3.0.3** is released and stable
+- **tview v0.42.0** still uses tcell v2 (latest as of 2025-12-17)
+- **tview has NOT released a v3-compatible version**
+
+This project **cannot migrate to tcell v3** until tview releases a compatible version.
+
+**Steps when tview v3 support is available:**
+
+1. Monitor tview releases at https://github.com/rivo/tview/releases
+2. Once tview releases a tcell v3-compatible version, run:
    ```bash
-   go get -u github.com/gdamore/tcell/v3@latest
    go get -u github.com/rivo/tview@latest
-   go mod tidy
    ```
+3. Update the single import line in `ui/cli_board.go` (line 9)
+4. Test thoroughly
+5. Commit and push
 
-3. **Update single import line** in `ui/cli_board.go`
-
-4. **Test thoroughly** (even though changes are minimal, testing is important)
-
-5. **Update CI/CD** if using GitHub Actions to test on Windows 1703+
+**Expected Changes When tview Updates:**
+- Line 9 in `ui/cli_board.go`: `"github.com/gdamore/tcell/v2"` → `"github.com/gdamore/tcell/v3"`
+- No other code changes needed
 
 ## Additional Notes
 
